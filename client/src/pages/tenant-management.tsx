@@ -1,0 +1,543 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Building, Plus, Search, Settings, Users, Activity, MoreHorizontal } from "lucide-react";
+import { Tenant, insertTenantSchema } from "@shared/schema";
+import { useAuth } from "@/contexts/auth-context";
+import { useTranslation } from "@/contexts/translation-context";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import OrganizationUsers from "./organization-users";
+
+const tenantTypeLabels = {
+  platform: "Platform Owner",
+  hospital: "Hospital",
+  clinic: "Clinic", 
+  pharmacy: "Pharmacy",
+  laboratory: "Laboratory",
+  insurance_provider: "Insurance Provider",
+};
+
+const tenantTypeColors = {
+  platform: "bg-indigo-100 text-indigo-800",
+  hospital: "bg-blue-100 text-blue-800",
+  clinic: "bg-green-100 text-green-800",
+  pharmacy: "bg-purple-100 text-purple-800",
+  laboratory: "bg-teal-100 text-teal-800",
+  insurance_provider: "bg-orange-100 text-orange-800",
+};
+
+export default function TenantManagement() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [viewDetailsTenant, setViewDetailsTenant] = useState<Tenant | null>(null);
+  const { user } = useAuth();
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  const { data: tenants = [], isLoading } = useQuery<Tenant[]>({
+    queryKey: ["/api/admin/tenants"],
+    enabled: !!user && user.role === "super_admin",
+  });
+
+  const createTenantMutation = useMutation({
+    mutationFn: async (tenantData: any) => {
+      const response = await fetch("/api/admin/tenants", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
+        },
+        body: JSON.stringify(tenantData)
+      });
+      if (!response.ok) throw new Error("Failed to create tenant");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tenants"] });
+      setIsFormOpen(false);
+      form.reset();
+    }
+  });
+
+  const form = useForm({
+    resolver: zodResolver(insertTenantSchema),
+    defaultValues: {
+      name: "",
+      type: "clinic" as const,
+      subdomain: "",
+      settings: {},
+      isActive: true,
+    }
+  });
+
+  const filteredTenants = tenants.filter(tenant =>
+    tenant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    tenant.subdomain.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const onSubmit = (data: any) => {
+    createTenantMutation.mutate(data);
+  };
+
+  const handleViewDetails = (tenant: Tenant) => {
+    setViewDetailsTenant(tenant);
+  };
+
+  const handleManageUsers = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+  };
+
+  if (!user || user.role !== "super_admin") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('access-denied')}</h2>
+          <p className="text-gray-600">{t('no-permission-tenant-management')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If a tenant is selected for user management, show the user management component
+  if (selectedTenant) {
+    return (
+      <OrganizationUsers
+        tenantId={selectedTenant.id}
+        tenantName={selectedTenant.name}
+        onBack={() => setSelectedTenant(null)}
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">{t('tenant-management')}</h1>
+          <p className="text-gray-600 mt-1">{t('manage-healthcare-organizations')}</p>
+        </div>
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="h-4 w-4 mr-2" />
+              {t('add-organization')}
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{t('create-new-organization')}</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('organization-name')}</FormLabel>
+                        <FormControl>
+                          <Input placeholder={t('enter-organization-name')} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('organization-type')}</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('select-type')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="hospital">{t('hospital')}</SelectItem>
+                            <SelectItem value="clinic">{t('clinic')}</SelectItem>
+                            <SelectItem value="pharmacy">{t('pharmacy')}</SelectItem>
+                            <SelectItem value="laboratory">{t('laboratory')}</SelectItem>
+                            <SelectItem value="insurance_provider">{t('insurance-provider')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="subdomain"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subdomain</FormLabel>
+                      <FormControl>
+                        <Input placeholder="organization-name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Active Organization</FormLabel>
+                        <div className="text-sm text-gray-500">
+                          Enable this organization to access the platform
+                        </div>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex justify-end space-x-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsFormOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={createTenantMutation.isPending}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {createTenantMutation.isPending ? "Creating..." : "Create Organization"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* View Details Dialog */}
+        <Dialog open={!!viewDetailsTenant} onOpenChange={() => setViewDetailsTenant(null)}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center">
+                <Building className="h-5 w-5 mr-2" />
+                Organization Details
+              </DialogTitle>
+            </DialogHeader>
+            {viewDetailsTenant && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Organization Name</label>
+                    <p className="text-lg font-semibold text-gray-900">{viewDetailsTenant.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Type</label>
+                    <div className="mt-1">
+                      <Badge 
+                        variant="secondary"
+                        className={tenantTypeColors[viewDetailsTenant.type as keyof typeof tenantTypeColors]}
+                      >
+                        {tenantTypeLabels[viewDetailsTenant.type as keyof typeof tenantTypeLabels]}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Subdomain</label>
+                    <p className="text-sm text-gray-900 font-mono bg-gray-50 px-2 py-1 rounded">
+                      {viewDetailsTenant.subdomain}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Status</label>
+                    <div className="mt-1">
+                      <Badge 
+                        variant={viewDetailsTenant.isActive ? "default" : "secondary"}
+                        className={viewDetailsTenant.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}
+                      >
+                        {viewDetailsTenant.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Created Date</label>
+                  <p className="text-sm text-gray-900">
+                    {viewDetailsTenant.createdAt ? new Date(viewDetailsTenant.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }) : 'N/A'}
+                  </p>
+                </div>
+
+                {viewDetailsTenant.settings && Object.keys(viewDetailsTenant.settings).length > 0 && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">
+                      {(viewDetailsTenant.settings as any)?.isPlatformOwner ? 'Platform Features' : 'Organization Settings'}
+                    </label>
+                    <div className="mt-1 bg-gray-50 p-3 rounded">
+                      {(viewDetailsTenant.settings as any)?.isPlatformOwner ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center text-sm text-gray-700">
+                            <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                            Platform Owner & Super Admin Access
+                          </div>
+                          <div className="flex items-center text-sm text-gray-700">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                            Multi-Tenant Management
+                          </div>
+                          <div className="flex items-center text-sm text-gray-700">
+                            <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                            Cross-Tenant Reporting
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {Object.entries(viewDetailsTenant.settings).map(([key, value]) => (
+                            <div key={key} className="flex items-start text-sm text-gray-700">
+                              <span className="w-2 h-2 bg-gray-400 rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
+                              <div>
+                                <span className="font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}: </span>
+                                <span className="text-gray-600">
+                                  {Array.isArray(value) ? value.join(', ') : String(value)}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-3 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setViewDetailsTenant(null)}
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setViewDetailsTenant(null);
+                      handleManageUsers(viewDetailsTenant);
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    View Users
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Organizations</p>
+                <p className="text-3xl font-bold text-gray-900">{tenants.length}</p>
+              </div>
+              <Building className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Organizations</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {tenants.filter(t => t.isActive).length}
+                </p>
+              </div>
+              <Activity className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Healthcare Providers</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {tenants.filter(t => t.type === 'hospital' || t.type === 'clinic').length}
+                </p>
+              </div>
+              <Users className="h-8 w-8 text-teal-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Support Services</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {tenants.filter(t => t.type === 'pharmacy' || t.type === 'laboratory' || t.type === 'insurance_provider').length}
+                </p>
+              </div>
+              <Settings className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 text-gray-400 transform -translate-y-1/2" />
+            <Input
+              placeholder="Search organizations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tenants List */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Building className="h-5 w-5 mr-2" />
+            Healthcare Organizations
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="flex items-center space-x-4 py-4">
+                    <div className="h-12 w-12 bg-gray-200 rounded-lg"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+                    </div>
+                    <div className="h-8 w-20 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredTenants.length === 0 ? (
+            <div className="text-center py-12">
+              <Building className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No organizations found</h3>
+              <p className="text-gray-600 mb-4">
+                {searchQuery ? "No organizations match your search" : "Get started by adding your first organization"}
+              </p>
+              <Button
+                onClick={() => setIsFormOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Organization
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-0">
+              {filteredTenants.map((tenant) => (
+                <div 
+                  key={tenant.id}
+                  className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                        <Building className="h-6 w-6 text-blue-600" />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm font-medium text-gray-900">{tenant.name}</p>
+                        <Badge 
+                          variant="secondary"
+                          className={tenantTypeColors[tenant.type as keyof typeof tenantTypeColors]}
+                        >
+                          {tenantTypeLabels[tenant.type as keyof typeof tenantTypeLabels]}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        Subdomain: {tenant.subdomain}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Created: {tenant.createdAt ? new Date(tenant.createdAt).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-4">
+                    <Badge 
+                      variant={tenant.isActive ? "default" : "secondary"}
+                      className={tenant.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}
+                    >
+                      {tenant.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-blue-600 hover:text-blue-700"
+                        onClick={() => handleViewDetails(tenant)}
+                      >
+                        View Details
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-gray-600 hover:text-gray-700"
+                        onClick={() => handleManageUsers(tenant)}
+                      >
+                        View Users
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

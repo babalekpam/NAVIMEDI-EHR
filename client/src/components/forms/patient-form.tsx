@@ -1,0 +1,755 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertPatientSchema } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { X, Plus, Heart, AlertTriangle, Pill, CreditCard } from "lucide-react";
+import { z } from "zod";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+
+interface PatientFormProps {
+  onSubmit: (data: any) => void;
+  isLoading?: boolean;
+}
+
+export const PatientForm = ({ onSubmit, isLoading = false }: PatientFormProps) => {
+  const [medicalConditions, setMedicalConditions] = useState<string[]>([]);
+  const [allergies, setAllergies] = useState<string[]>([]);
+  const [medications, setMedications] = useState<string[]>([]);
+  const [newCondition, setNewCondition] = useState("");
+  const [newAllergy, setNewAllergy] = useState("");
+  const [newMedication, setNewMedication] = useState("");
+
+  // Fetch insurance providers and pharmacies
+  const { data: insuranceProviders = [] } = useQuery({
+    queryKey: ["/api/insurance-providers"],
+    enabled: true,
+  });
+
+  const { data: pharmacies = [] } = useQuery({
+    queryKey: ["/api/pharmacies"],
+    enabled: true,
+  });
+
+  // Define patient form schema manually
+  const patientFormSchema = z.object({
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    dateOfBirth: z.string().min(1, "Date of birth is required"),
+    gender: z.string().optional(),
+    phone: z.string().optional().refine((val) => !val || /^\d{10}$/.test(val.replace(/\D/g, '')), {
+      message: "Phone number must be exactly 10 digits"
+    }),
+    email: z.string().optional(),
+    address: z.string().optional(),
+    emergencyContact: z.string().optional(),
+    // Medical Information (arrays handled separately)
+    medicalHistory: z.array(z.string()).optional(),
+    allergies: z.array(z.string()).optional(),
+    medications: z.array(z.string()).optional(),
+    // Insurance Information
+    insuranceProvider: z.string().optional(),
+    customInsuranceProvider: z.string().optional(),
+    manualInsuranceProvider: z.string().optional(),
+    policyNumber: z.string().optional(),
+    groupNumber: z.string().optional(),
+    subscriberName: z.string().optional(),
+    subscriberRelationship: z.string().optional(),
+    copayPercentage: z.string().optional(),
+    coveragePercentage: z.string().optional(),
+    copayAmount: z.string().optional(),
+    deductibleAmount: z.string().optional(),
+    // Preferred pharmacy
+    preferredPharmacyId: z.string().optional()
+  });
+
+  const form = useForm({
+    resolver: zodResolver(patientFormSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      dateOfBirth: "",
+      gender: "",
+      phone: "",
+      email: "",
+      address: "",
+      emergencyContact: "",
+      medicalHistory: [],
+      allergies: [],
+      medications: [],
+      // Insurance defaults
+      insuranceProvider: "",
+      customInsuranceProvider: "",
+      manualInsuranceProvider: "",
+      policyNumber: "",
+      groupNumber: "",
+      subscriberName: "",
+      subscriberRelationship: "",
+      copayPercentage: "",
+      coveragePercentage: "",
+      copayAmount: "",
+      deductibleAmount: "",
+      preferredPharmacyId: ""
+    }
+  });
+
+  const handleSubmit = (data: any) => {
+    // Prepare insurance information with enhanced fields
+    const insuranceData = (data.insuranceProvider || data.policyNumber || data.manualInsuranceProvider) ? {
+      provider: data.insuranceProvider === 'other' ? data.customInsuranceProvider : data.insuranceProvider,
+      manualProvider: data.manualInsuranceProvider,
+      policyNumber: data.policyNumber,
+      groupNumber: data.groupNumber,
+      subscriberName: data.subscriberName,
+      subscriberRelationship: data.subscriberRelationship,
+      copayPercentage: data.copayPercentage ? parseFloat(data.copayPercentage) : undefined,
+      coveragePercentage: data.coveragePercentage ? parseFloat(data.coveragePercentage) : undefined,
+      deductibleAmount: data.deductibleAmount ? parseFloat(data.deductibleAmount) : undefined,
+      isPrimary: true,
+      isActive: true
+    } : undefined;
+
+    // Handle pharmacy selection - only pass UUID values
+    let preferredPharmacyId = undefined;
+    if (data.preferredPharmacyId && 
+        data.preferredPharmacyId !== 'no_preference' && 
+        data.preferredPharmacyId !== 'closest_to_residence' && 
+        data.preferredPharmacyId !== 'other_pharmacy') {
+      preferredPharmacyId = data.preferredPharmacyId;
+    }
+
+    const patientData = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      dateOfBirth: data.dateOfBirth,
+      gender: data.gender || undefined,
+      phone: data.phone || undefined,
+      email: data.email || undefined,
+      address: data.address || undefined,
+      emergencyContact: data.emergencyContact || undefined,
+      medicalHistory: medicalConditions,
+      allergies: allergies,
+      medications: medications,
+      insuranceInfo: insuranceData,
+      preferredPharmacyId: preferredPharmacyId
+    };
+    onSubmit(patientData);
+  };
+
+  const addCondition = () => {
+    if (newCondition.trim() && !medicalConditions.includes(newCondition.trim())) {
+      setMedicalConditions([...medicalConditions, newCondition.trim()]);
+      setNewCondition("");
+    }
+  };
+
+  const removeCondition = (condition: string) => {
+    setMedicalConditions(medicalConditions.filter(c => c !== condition));
+  };
+
+  const addAllergy = () => {
+    if (newAllergy.trim() && !allergies.includes(newAllergy.trim())) {
+      setAllergies([...allergies, newAllergy.trim()]);
+      setNewAllergy("");
+    }
+  };
+
+  const removeAllergy = (allergy: string) => {
+    setAllergies(allergies.filter(a => a !== allergy));
+  };
+
+  const addMedication = () => {
+    if (newMedication.trim() && !medications.includes(newMedication.trim())) {
+      setMedications([...medications, newMedication.trim()]);
+      setNewMedication("");
+    }
+  };
+
+  const removeMedication = (medication: string) => {
+    setMedications(medications.filter(m => m !== medication));
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="firstName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>First Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter first name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="lastName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Last Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter last name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="dateOfBirth"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Date of Birth</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="gender"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Gender</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Phone Number</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="1234567890" 
+                    {...field} 
+                    maxLength={10}
+                    onChange={(e) => {
+                      // Only allow digits and limit to 10 characters
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      field.onChange(value);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email Address</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="patient@example.com" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Address</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Enter full address" {...field} className="min-h-[80px]" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="emergencyContact"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Emergency Contact</FormLabel>
+              <FormControl>
+                <Input placeholder="Name and 10-digit phone number of emergency contact" {...field} />
+              </FormControl>
+              <FormDescription>
+                Example: John Doe - 5551234567 (Spouse)
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Medical History Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg">
+              <Heart className="h-5 w-5 mr-2 text-red-500" />
+              Medical History
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <FormLabel>Medical Conditions</FormLabel>
+              <FormDescription className="mb-3">
+                Add any chronic conditions, past surgeries, or significant medical history
+              </FormDescription>
+              <div className="flex space-x-2 mb-3">
+                <Input
+                  placeholder="e.g., Diabetes, Hypertension, Heart Disease..."
+                  value={newCondition}
+                  onChange={(e) => setNewCondition(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCondition())}
+                />
+                <Button type="button" onClick={addCondition} size="sm">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {medicalConditions.map((condition, index) => (
+                  <Badge key={index} variant="secondary" className="flex items-center">
+                    {condition}
+                    <X 
+                      className="h-3 w-3 ml-1 cursor-pointer" 
+                      onClick={() => removeCondition(condition)}
+                    />
+                  </Badge>
+                ))}
+                {medicalConditions.length === 0 && (
+                  <p className="text-sm text-gray-500">No medical conditions added</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Allergies Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg">
+              <AlertTriangle className="h-5 w-5 mr-2 text-yellow-500" />
+              Allergies
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <FormLabel>Known Allergies</FormLabel>
+              <FormDescription className="mb-3">
+                Include drug allergies, food allergies, and environmental allergies
+              </FormDescription>
+              <div className="flex space-x-2 mb-3">
+                <Input
+                  placeholder="e.g., Penicillin, Peanuts, Latex..."
+                  value={newAllergy}
+                  onChange={(e) => setNewAllergy(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAllergy())}
+                />
+                <Button type="button" onClick={addAllergy} size="sm">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {allergies.map((allergy, index) => (
+                  <Badge key={index} variant="destructive" className="flex items-center">
+                    {allergy}
+                    <X 
+                      className="h-3 w-3 ml-1 cursor-pointer" 
+                      onClick={() => removeAllergy(allergy)}
+                    />
+                  </Badge>
+                ))}
+                {allergies.length === 0 && (
+                  <p className="text-sm text-gray-500">No known allergies</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Current Medications Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg">
+              <Pill className="h-5 w-5 mr-2 text-blue-500" />
+              Current Medications
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <FormLabel>Current Medications</FormLabel>
+              <FormDescription className="mb-3">
+                List all medications, dosages, and frequency (prescription and over-the-counter)
+              </FormDescription>
+              <div className="flex space-x-2 mb-3">
+                <Input
+                  placeholder="e.g., Metformin 500mg twice daily, Aspirin 81mg daily..."
+                  value={newMedication}
+                  onChange={(e) => setNewMedication(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addMedication())}
+                />
+                <Button type="button" onClick={addMedication} size="sm">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {medications.map((medication, index) => (
+                  <Badge key={index} variant="outline" className="flex items-center">
+                    {medication}
+                    <X 
+                      className="h-3 w-3 ml-1 cursor-pointer" 
+                      onClick={() => removeMedication(medication)}
+                    />
+                  </Badge>
+                ))}
+                {medications.length === 0 && (
+                  <p className="text-sm text-gray-500">No current medications</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Insurance Information Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg">
+              <CreditCard className="h-5 w-5 mr-2 text-green-500" />
+              Insurance Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <FormDescription>
+              Provide insurance details if available. This information is optional but helps with billing and claims processing.
+            </FormDescription>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="insuranceProvider"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Insurance Provider</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select insurance provider" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {insuranceProviders.map((provider: any) => (
+                          <SelectItem key={provider.id} value={provider.name}>
+                            {provider.name}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="other">Other / Not Listed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      If patient is insured but provider not listed, select "Other / Not Listed" and enter manually below
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {form.watch('insuranceProvider') === 'other' && (
+                <FormField
+                  control={form.control}
+                  name="customInsuranceProvider"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-red-600">Insurance Provider Name *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Enter exact insurance provider name (e.g., Blue Cross Blue Shield of Texas)" 
+                          {...field} 
+                          className="border-red-200 focus:border-red-400"
+                        />
+                      </FormControl>
+                      <FormDescription className="text-red-600">
+                        Required: Enter the exact name as shown on the insurance card
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              <FormField
+                control={form.control}
+                name="manualInsuranceProvider"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Alternative: Direct Insurance Provider Entry</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Or enter insurance provider name directly here" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Use this field if you prefer to type the insurance provider name directly
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="policyNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Policy Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter policy number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="groupNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Group Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter group number (optional)" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="subscriberName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Subscriber Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Name on insurance card" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="subscriberRelationship"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Relationship to Subscriber</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select relationship" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="self">Self</SelectItem>
+                        <SelectItem value="spouse">Spouse</SelectItem>
+                        <SelectItem value="child">Child</SelectItem>
+                        <SelectItem value="dependent">Dependent</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="copayPercentage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Patient Copay Percentage (%)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="20" 
+                        step="1"
+                        min="0"
+                        max="100"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Percentage of costs paid by patient (e.g., 20% copay)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="coveragePercentage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Insurance Coverage Percentage (%)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="80" 
+                        step="1"
+                        min="0"
+                        max="100"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Percentage covered by insurance (e.g., 80% coverage)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="deductibleAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Deductible Amount ($)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="0.00" 
+                        step="0.01"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Preferred Pharmacy Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Pill className="h-5 w-5" />
+              Preferred Pharmacy
+            </CardTitle>
+            <FormDescription>
+              Select a preferred pharmacy for prescriptions. This can be changed later by healthcare providers with patient approval.
+            </FormDescription>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="preferredPharmacyId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preferred Pharmacy (Optional)</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a preferred pharmacy" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="no_preference">No preference</SelectItem>
+                      <SelectItem value="closest_to_residence">Closest to my residence</SelectItem>
+                      {pharmacies.map((pharmacy: any) => (
+                        <SelectItem key={pharmacy.id} value={pharmacy.id}>
+                          {pharmacy.name}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="other_pharmacy">Other pharmacy (not listed)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Choose your preferred pharmacy for prescriptions. If you select "Closest to my residence", we'll recommend pharmacies near your address. Healthcare providers can override this selection when medically necessary.
+                  </FormDescription>
+                  
+                  {form.watch('preferredPharmacyId') === 'other_pharmacy' && (
+                    <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <FormLabel className="text-sm font-medium">Manual Pharmacy Entry</FormLabel>
+                      <Input 
+                        placeholder="Enter pharmacy name, address, and phone number"
+                        className="mt-2"
+                        onChange={(e) => {
+                          // This would be handled in form submission logic
+                          // Store the custom pharmacy information
+                        }}
+                      />
+                      <p className="text-xs text-yellow-700 mt-1">
+                        Note: Healthcare providers will need to verify this pharmacy information before processing prescriptions.
+                      </p>
+                    </div>
+                  )}
+                  
+                  {form.watch('preferredPharmacyId') === 'closest_to_residence' && (
+                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-700">
+                        ✓ Based on your address, we'll recommend the closest pharmacies in your area when processing prescriptions.
+                      </p>
+                    </div>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end space-x-4">
+          <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700">
+            {isLoading ? "Creating Patient..." : "Create Patient"}
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+};

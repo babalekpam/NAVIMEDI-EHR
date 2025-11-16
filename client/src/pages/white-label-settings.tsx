@@ -1,0 +1,515 @@
+import React, { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  Palette, 
+  Upload, 
+  Save, 
+  Eye, 
+  Code, 
+  Globe, 
+  Crown,
+  CheckCircle,
+  AlertCircle
+} from "lucide-react";
+import { useTenant } from "@/hooks/use-tenant";
+import { useAuth } from "@/contexts/auth-context";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { ObjectUploader } from "@/components/ObjectUploader";
+
+interface WhiteLabelSettings {
+  brandName: string;
+  logoUrl: string;
+  primaryColor: string;
+  secondaryColor: string;
+  customDomain: string;
+  customCss: string;
+}
+
+export default function WhiteLabelSettingsPage() {
+  const { toast } = useToast();
+  const { tenant: currentTenant } = useTenant();
+  const { user } = useAuth();
+  const [previewMode, setPreviewMode] = useState(false);
+
+  const [settings, setSettings] = useState<WhiteLabelSettings>({
+    brandName: currentTenant?.brandName || currentTenant?.name || "",
+    logoUrl: currentTenant?.logoUrl || "",
+    primaryColor: currentTenant?.primaryColor || "#10b981",
+    secondaryColor: currentTenant?.secondaryColor || "#3b82f6",
+    customDomain: currentTenant?.customDomain || "",
+    customCss: currentTenant?.customCss || ""
+  });
+
+  const { data: subscription } = useQuery({
+    queryKey: ['/api/subscriptions/current'],
+    enabled: !!currentTenant
+  });
+
+  const saveSettingsMutation = useMutation({
+    mutationFn: async (data: Partial<WhiteLabelSettings>) => {
+      const response = await fetch(`/api/tenants/${currentTenant?.id}/white-label`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to save settings');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Settings saved",
+        description: "White label settings have been updated successfully."
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/tenants'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tenant/current'] });
+      // Force reload the page to refresh all brand name references
+      window.location.reload();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save settings",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleSave = () => {
+    saveSettingsMutation.mutate(settings);
+  };
+
+  const handlePreview = () => {
+    setPreviewMode(!previewMode);
+    if (!previewMode) {
+      // Apply preview styles
+      document.documentElement.style.setProperty('--primary', settings.primaryColor);
+      document.documentElement.style.setProperty('--secondary', settings.secondaryColor);
+    } else {
+      // Reset to original styles
+      document.documentElement.style.removeProperty('--primary');
+      document.documentElement.style.removeProperty('--secondary');
+    }
+  };
+
+  const handleLogoUpload = async (result: any) => {
+    try {
+      if (!result.successful || result.successful.length === 0) {
+        throw new Error('Upload failed');
+      }
+
+      const uploadedFile = result.successful[0];
+      const logoUrl = uploadedFile.uploadURL;
+
+      // Save logo URL to database
+      const response = await apiRequest(`/api/tenants/${currentTenant?.id}/logo`, 'PATCH', {
+        logoUrl
+      });
+
+      if (response.logoUrl) {
+        setSettings(prev => ({ ...prev, logoUrl: response.logoUrl }));
+        toast({
+          title: "Logo uploaded",
+          description: "Your organization logo has been updated successfully."
+        });
+        queryClient.invalidateQueries({ queryKey: ['/api/tenant/current'] });
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload logo. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getUploadUrl = async () => {
+    // Fetch CSRF token first
+    const csrfResponse = await fetch('/api/csrf-token', { credentials: 'include' });
+    const csrfData = await csrfResponse.json();
+    
+    const response = await fetch('/api/objects/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+        'X-CSRF-Token': csrfData.csrfToken
+      }
+    });
+    const data = await response.json();
+    return {
+      method: 'PUT' as const,
+      url: data.uploadURL
+    };
+  };
+
+  // Super admins bypass subscription check (for demo/setup)
+  const isSuperAdmin = user?.role === 'super_admin';
+  
+  // Check if organization has White Label or Custom subscription
+  const hasWhiteLabelPlan = currentTenant?.subscriptionPlanId === 'white_label' || currentTenant?.subscriptionPlanId === 'custom';
+  const isWhiteLabelEnabled = isSuperAdmin || hasWhiteLabelPlan;
+
+  if (!isWhiteLabelEnabled) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="max-w-4xl mx-auto">
+          <Alert className="border-yellow-200 bg-yellow-50">
+            <Crown className="w-4 h-4 text-yellow-600" />
+            <AlertDescription className="text-yellow-800 space-y-3">
+              <div>
+                <strong>White Label branding features require a White Label or Custom subscription plan.</strong>
+              </div>
+              <div className="text-sm">
+                Upgrade to unlock:
+              </div>
+              <ul className="text-sm list-disc ml-5 space-y-1">
+                <li>Custom logo upload for your organization</li>
+                <li>Institutional branding on all medical documents</li>
+                <li>Custom brand colors and styling</li>
+                <li>Custom domain support</li>
+                <li>Personalized patient-facing materials</li>
+              </ul>
+              <div className="pt-2">
+                <Button variant="default" className="bg-yellow-600 hover:bg-yellow-700 text-white">
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade to White Label Plan
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">White Label Settings</h1>
+            <p className="text-slate-600 mt-2">
+              {isSuperAdmin 
+                ? "Super Admin unlimited customization - full platform control" 
+                : "Customize your platform's branding and appearance with professional institutional headers on all medical documents"
+              }
+            </p>
+          </div>
+          <Badge className={isSuperAdmin ? "bg-purple-100 text-purple-800" : "bg-green-100 text-green-800"}>
+            <Crown className="w-3 h-3 mr-1" />
+            {isSuperAdmin 
+              ? "Super Admin Access" 
+              : currentTenant?.subscriptionPlanId === 'custom' 
+                ? "Custom Plan" 
+                : "White Label Plan"
+            }
+          </Badge>
+        </div>
+
+        <Tabs defaultValue="branding" className="space-y-6">
+          <TabsList className="inline-flex h-12 items-center justify-start rounded-lg bg-muted p-1 text-muted-foreground w-full max-w-3xl">
+            <TabsTrigger value="branding">Branding</TabsTrigger>
+            <TabsTrigger value="colors">Colors</TabsTrigger>
+            <TabsTrigger value="domain">Domain</TabsTrigger>
+            <TabsTrigger value="css">Custom CSS</TabsTrigger>
+          </TabsList>
+
+          {/* Branding Tab */}
+          <TabsContent value="branding">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Palette className="w-5 h-5" />
+                  Brand Identity
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="brandName">Brand Name</Label>
+                      <Input
+                        id="brandName"
+                        value={settings.brandName}
+                        onChange={(e) => setSettings(prev => ({ ...prev, brandName: e.target.value }))}
+                        placeholder="Your Healthcare Platform"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="logoUrl">Logo URL</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="logoUrl"
+                          value={settings.logoUrl}
+                          onChange={(e) => setSettings(prev => ({ ...prev, logoUrl: e.target.value }))}
+                          placeholder="Upload or paste logo URL"
+                          data-testid="input-logo-url"
+                        />
+                        <ObjectUploader
+                          maxNumberOfFiles={1}
+                          maxFileSize={5242880}
+                          onGetUploadParameters={getUploadUrl}
+                          onComplete={handleLogoUpload}
+                          buttonClassName="variant-outline"
+                          dataTestId="button-upload-logo"
+                        >
+                          <Upload className="w-4 h-4" />
+                        </ObjectUploader>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">Upload an image (max 5MB) or paste a URL</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <Label>Brand Preview</Label>
+                    <div className="border rounded-lg p-6 bg-white">
+                      <div className="flex items-center gap-3">
+                        {settings.logoUrl ? (
+                          <img 
+                            src={settings.logoUrl} 
+                            alt="Logo" 
+                            className="h-8 w-8 rounded"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="h-8 w-8 bg-slate-200 rounded"></div>
+                        )}
+                        <span className="text-xl font-bold" style={{ color: settings.primaryColor }}>
+                          {settings.brandName || "Your Brand"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Colors Tab */}
+          <TabsContent value="colors">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Palette className="w-5 h-5" />
+                  Color Scheme
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="primaryColor">Primary Color</Label>
+                      <div className="flex gap-2 items-center">
+                        <Input
+                          id="primaryColor"
+                          type="color"
+                          value={settings.primaryColor}
+                          onChange={(e) => setSettings(prev => ({ ...prev, primaryColor: e.target.value }))}
+                          className="w-20 h-10"
+                        />
+                        <Input
+                          value={settings.primaryColor}
+                          onChange={(e) => setSettings(prev => ({ ...prev, primaryColor: e.target.value }))}
+                          placeholder="#10b981"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="secondaryColor">Secondary Color</Label>
+                      <div className="flex gap-2 items-center">
+                        <Input
+                          id="secondaryColor"
+                          type="color"
+                          value={settings.secondaryColor}
+                          onChange={(e) => setSettings(prev => ({ ...prev, secondaryColor: e.target.value }))}
+                          className="w-20 h-10"
+                        />
+                        <Input
+                          value={settings.secondaryColor}
+                          onChange={(e) => setSettings(prev => ({ ...prev, secondaryColor: e.target.value }))}
+                          placeholder="#3b82f6"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <Label>Color Preview</Label>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <Button style={{ backgroundColor: settings.primaryColor }}>
+                          Primary Button
+                        </Button>
+                        <span className="text-sm text-slate-600">Primary color usage</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Button variant="outline" style={{ 
+                          borderColor: settings.secondaryColor, 
+                          color: settings.secondaryColor 
+                        }}>
+                          Secondary Button
+                        </Button>
+                        <span className="text-sm text-slate-600">Secondary color usage</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Domain Tab */}
+          <TabsContent value="domain">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="w-5 h-5" />
+                  Custom Domain
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <Label htmlFor="customDomain">Custom Domain</Label>
+                  <Input
+                    id="customDomain"
+                    value={settings.customDomain}
+                    onChange={(e) => setSettings(prev => ({ ...prev, customDomain: e.target.value }))}
+                    placeholder="healthcare.yourcompany.com"
+                  />
+                  <p className="text-sm text-slate-600 mt-2">
+                    Enter your custom domain. You'll need to configure DNS settings to point to our servers.
+                  </p>
+                </div>
+
+                <Alert className="border-blue-200 bg-blue-50">
+                  <AlertCircle className="w-4 h-4 text-blue-600" />
+                  <AlertDescription className="text-blue-800">
+                    <strong>DNS Configuration Required:</strong>
+                    <br />
+                    Create a CNAME record pointing to: platform.navimed.com
+                    <br />
+                    SSL certificates will be automatically provisioned.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="bg-slate-50 rounded-lg p-4">
+                  <h4 className="font-medium mb-2">Current Status</h4>
+                  <div className="flex items-center gap-2">
+                    {settings.customDomain ? (
+                      <>
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <span className="text-sm text-green-800">
+                          Domain configured: {settings.customDomain}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="w-4 h-4 text-yellow-600" />
+                        <span className="text-sm text-yellow-800">
+                          Using default subdomain: {currentTenant?.subdomain}.navimed.com
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Custom CSS Tab */}
+          <TabsContent value="css">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Code className="w-5 h-5" />
+                  Custom CSS
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <Label htmlFor="customCss">Custom CSS Code</Label>
+                  <Textarea
+                    id="customCss"
+                    value={settings.customCss}
+                    onChange={(e) => setSettings(prev => ({ ...prev, customCss: e.target.value }))}
+                    placeholder="/* Your custom CSS styles */
+.custom-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.custom-button {
+  border-radius: 25px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}"
+                    className="min-h-[300px] font-mono text-sm"
+                  />
+                  <p className="text-sm text-slate-600 mt-2">
+                    Add custom CSS to further customize your platform's appearance. 
+                    Changes will be applied to all users in your organization.
+                  </p>
+                </div>
+
+                <Alert className="border-yellow-200 bg-yellow-50">
+                  <AlertCircle className="w-4 h-4 text-yellow-600" />
+                  <AlertDescription className="text-yellow-800">
+                    <strong>Important:</strong> Custom CSS can affect platform functionality. 
+                    Test thoroughly before applying to production.
+                  </AlertDescription>
+                </Alert>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-4 justify-end">
+          <Button 
+            variant="outline" 
+            onClick={handlePreview}
+            className="flex items-center gap-2"
+          >
+            <Eye className="w-4 h-4" />
+            {previewMode ? 'Exit Preview' : 'Preview Changes'}
+          </Button>
+          
+          <Button 
+            onClick={handleSave}
+            disabled={saveSettingsMutation.isPending}
+            className="flex items-center gap-2"
+          >
+            <Save className="w-4 h-4" />
+            {saveSettingsMutation.isPending ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+
+        {previewMode && (
+          <Alert className="border-blue-200 bg-blue-50">
+            <Eye className="w-4 h-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              Preview mode is active. You're seeing how your changes will look to users.
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
+    </div>
+  );
+}
