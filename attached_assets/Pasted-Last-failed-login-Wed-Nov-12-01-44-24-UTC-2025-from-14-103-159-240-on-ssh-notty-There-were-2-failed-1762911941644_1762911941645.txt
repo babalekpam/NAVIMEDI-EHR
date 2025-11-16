@@ -1,0 +1,29 @@
+Last failed login: Wed Nov 12 01:44:24 UTC 2025 from 14.103.159.240 on ssh:notty
+There were 2 failed login attempts since the last successful login.
+Last login: Wed Nov 12 01:44:22 2025 from 127.0.0.1
+
+This server is powered by Plesk.
+
+Run the 'plesk login' command and log in by browsing either of the links received in the output.
+Use the 'plesk' command to manage the server. Run 'plesk help' for more info.
+
+[root@wizardly-swirles ~]# find /var/www -name "package.json" -type f 2>/dev/null | head -10
+/var/www/vhosts/navimedi.org/httpdocs/NaviMed_old_backup/node_modules/@alloc/quick-lru/package.json
+/var/www/vhosts/navimedi.org/httpdocs/NaviMed_old_backup/node_modules/@aws-sdk/util-arn-parser/package.json
+/var/www/vhosts/navimedi.org/httpdocs/NaviMed_old_backup/node_modules/@aws-sdk/util-locate-window/package.json
+/var/www/vhosts/navimedi.org/httpdocs/NaviMed_old_backup/node_modules/@aws-sdk/core/package.json
+/var/www/vhosts/navimedi.org/httpdocs/NaviMed_old_backup/node_modules/@aws-sdk/credential-provider-env/package.json
+/var/www/vhosts/navimedi.org/httpdocs/NaviMed_old_backup/node_modules/@aws-sdk/credential-provider-http/package.json
+/var/www/vhosts/navimedi.org/httpdocs/NaviMed_old_backup/node_modules/@aws-sdk/credential-provider-ini/package.json
+/var/www/vhosts/navimedi.org/httpdocs/NaviMed_old_backup/node_modules/@aws-sdk/credential-provider-node/package.json
+/var/www/vhosts/navimedi.org/httpdocs/NaviMed_old_backup/node_modules/@aws-sdk/credential-provider-process/package.json
+/var/www/vhosts/navimedi.org/httpdocs/NaviMed_old_backup/node_modules/@aws-sdk/credential-provider-sso/package.json
+[root@wizardly-swirles ~]# pm2 list
+┌────┬────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name       │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ navimed    │ default     │ N/A     │ fork    │ 2072186  │ 28h    │ 78   │ online    │ 0%       │ 75.8mb   │ root     │ disabled │
+└────┴────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[root@wizardly-swirles ~]# pm2 show navimed | grep cwd
+│ exec cwd          │ /var/www/vhosts/navimedi.org/httpdocs/NaviMed │
+[root@wizardly-swirles ~]# 

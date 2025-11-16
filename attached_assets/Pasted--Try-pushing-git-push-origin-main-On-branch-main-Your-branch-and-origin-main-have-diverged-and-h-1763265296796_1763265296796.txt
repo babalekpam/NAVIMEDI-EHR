@@ -1,0 +1,60 @@
+# Try pushing
+git push origin main
+On branch main
+Your branch and 'origin/main' have diverged,
+and have 2749 and 1 different commits each, respectively.
+  (use "git pull" if you want to integrate the remote branch with yours)
+
+nothing to commit, working tree clean
+To https://github.com/babalekpam/NAVIMED
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/babalekpam/NAVIMED'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. If you want to integrate the remote changes,
+hint: use 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+~/workspace$ # See how far behind/ahead we are
+git fetch origin
+git log --oneline --graph --decorate --all | head -20
+
+# Check if there are conflicts
+git pull --rebase origin main
+error: cannot lock ref 'refs/remotes/origin/HEAD': Unable to create '/home/runner/workspace/.git/refs/remotes/origin/HEAD.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+*   90b1a3c (replit-agent) Add project overview and technical details to the documentation
+|\  
+| * 43edb05 (HEAD -> main, gitsafe-backup/main, gitsafe-backup/HEAD) Add project overview and technical details to the documentation
+* | 0da6dfc Update project assets with new image files
+|\| 
+| * 04df3e9 Update project assets with new image files
+* | e25f4e7 Add file listing and management capabilities to the platform
+|\| 
+| * 72a5e0d Add file listing and management capabilities to the platform
+* | 555c277 Add attached image for visual reference
+|\| 
+| * 57cbe44 Add attached image for visual reference
+* | 56cc5d4 Restrict logo uploads to specific subscription plans
+|\| 
+| * efe5de3 Restrict logo uploads to specific subscription plans
+* | 363ab4c Restrict logo uploads to specific subscription plans
+|\| 
+| * f198269 Restrict logo uploads to specific subscription plans
+* | 90e8db4 Fix build process and deployment errors for the application
+|\| 
+From https://github.com/babalekpam/NAVIMED
+ * branch            main       -> FETCH_HEAD
+CONFLICT (modify/delete): .replit deleted in HEAD and modified in cfc569f (Add new API endpoints and update CSRF protection rules).  Version cfc569f (Add new API endpoints and update CSRF protection rules) of .replit left in tree.
+CONFLICT (modify/delete): server/middleware/csrf.ts deleted in HEAD and modified in cfc569f (Add new API endpoints and update CSRF protection rules).  Version cfc569f (Add new API endpoints and update CSRF protection rules) of server/middleware/csrf.ts left in tree.
+error: could not apply cfc569f... Add new API endpoints and update CSRF protection rules
+hint: Resolve all conflicts manually, mark them as resolved with
+hint: "git add/rm <conflicted_files>", then run "git rebase --continue".
+hint: You can instead skip this commit: run "git rebase --skip".
+hint: To abort and get back to the state before "git rebase", run "git rebase --abort".
+hint: Disable this message with "git config set advice.mergeConflict false"
+Could not apply cfc569f... # Add new API endpoints and update CSRF protection rules
+~/workspace$ 

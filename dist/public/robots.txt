@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+
+# Block only sensitive administrative areas
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /super-admin-dashboard/
+Disallow: /tenant-management/
+Disallow: /api/auth/
+Disallow: /api/admin/
+Disallow: /patient-portal-staff/
+
+# Block payment and checkout processes
+Disallow: /checkout/
+Disallow: /payment-success/
+Disallow: /subscription-success/
+Disallow: /billing/
+
+# Block internal reports and logs
+Disallow: /reports/
+Disallow: /audit-logs/
+
+# Sitemap location
+Sitemap: https://navimedi.org/sitemap.xml
