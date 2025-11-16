@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Building2, ArrowLeft, CheckCircle, CreditCard, FileText, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import navimedLogo from "@assets/JPG_1753663321927.jpg";
+import navimedLogo from "../assets/JPG_1753663321927.jpg";
 import { useStripe, useElements, Elements, CardElement } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 

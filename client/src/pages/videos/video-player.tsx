@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Link, useParams } from "wouter";
 import { useState, useEffect } from "react";
-import navimedLogo from "@assets/JPG_1753663321927.jpg";
+import navimedLogo from "../../assets/JPG_1753663321927.jpg";
 
 interface VideoContent {
   id: string;

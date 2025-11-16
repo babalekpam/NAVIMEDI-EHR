@@ -48,7 +48,7 @@ import {
   Globe,
   Eye
 } from "lucide-react";
-import navimedLogo from "@assets/JPG_1753663321927.jpg";
+import navimedLogo from "../assets/JPG_1753663321927.jpg";
 
 export default function PatientPortal() {
   const { user, logout } = useAuth();

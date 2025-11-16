@@ -2,7 +2,7 @@ import { ArrowLeft, Building, Users, Calendar, FileText, Heart, Clock, CheckCirc
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
-import navimedLogo from "@assets/JPG_1753663321927.jpg";
+import navimedLogo from "../../assets/JPG_1753663321927.jpg";
 
 export default function ClinicSolutions() {
   const features = [

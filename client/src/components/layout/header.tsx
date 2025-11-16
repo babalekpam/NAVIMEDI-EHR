@@ -2,7 +2,7 @@ import { Bell, ChevronDown, Building2, Wifi, WifiOff, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import navimedLogo from "@assets/JPG_1753663321927.jpg";
+import navimedLogo from "../../assets/JPG_1753663321927.jpg";
 import {
   DropdownMenu,
   DropdownMenuContent,

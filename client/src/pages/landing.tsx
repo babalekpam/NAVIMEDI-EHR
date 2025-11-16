@@ -4,12 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PublicHeader } from "@/components/layout/public-header";
 import { TrainingEnrollmentForm } from "@/components/training-enrollment-form";
-import navimedLogo from "@assets/JPG_1753663321927.jpg";
-import surgicalTeam from "@assets/stock_images/professional_healthc_f68a0efd.jpg";
-import brainScanAnalysis from "@assets/stock_images/medical_imaging_doct_b8bd9edc.jpg";
-import healthcareProfessional from "@assets/stock_images/professional_healthc_7626d9c3.jpg";
-import mriMachine from "@assets/stock_images/medical_imaging_doct_bc60a504.jpg";
-import patientCare from "@assets/stock_images/medical_team_collabo_28195681.jpg";
+import navimedLogo from "../assets/JPG_1753663321927.jpg";
+import surgicalTeam from "../assets/stock_images/professional_healthc_f68a0efd.jpg";
+import brainScanAnalysis from "../assets/stock_images/medical_imaging_doct_b8bd9edc.jpg";
+import healthcareProfessional from "../assets/stock_images/professional_healthc_7626d9c3.jpg";
+import mriMachine from "../assets/stock_images/medical_imaging_doct_bc60a504.jpg";
+import patientCare from "../assets/stock_images/medical_team_collabo_28195681.jpg";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { 

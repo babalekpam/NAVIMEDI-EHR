@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import navimedLogo from "@assets/JPG_1753663321927.jpg";
+import navimedLogo from "../../assets/JPG_1753663321927.jpg";
 
 interface PublicHeaderProps {
   className?: string;

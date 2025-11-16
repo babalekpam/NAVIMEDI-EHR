@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
-import navimedLogo from "@assets/JPG_1753663321927.jpg";
+import navimedLogo from "../../assets/JPG_1753663321927.jpg";
 
 export default function AWSIntegration() {
   const [bucketName, setBucketName] = useState("");

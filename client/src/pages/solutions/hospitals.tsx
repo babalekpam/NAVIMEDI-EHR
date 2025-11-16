@@ -2,7 +2,7 @@ import { ArrowLeft, Building2, Users, Calendar, FileText, DollarSign, Shield, Cl
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
-import navimedLogo from "@assets/JPG_1753663321927.jpg";
+import navimedLogo from "../../assets/JPG_1753663321927.jpg";
 
 export default function HospitalSolutions() {
   const features = [

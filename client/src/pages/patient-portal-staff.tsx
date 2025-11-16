@@ -40,7 +40,7 @@ import {
   Download,
   ArrowLeft
 } from "lucide-react";
-import navimedLogo from "@assets/JPG_1753663321927.jpg";
+import navimedLogo from "../assets/JPG_1753663321927.jpg";
 
 export default function PatientPortalStaff() {
   const { user } = useAuth();

@@ -28,7 +28,7 @@ import {
 import { format, addDays, startOfToday, isSameDay, isAfter, isBefore, addHours, setHours, setMinutes } from "date-fns";
 import { useAuth } from "@/contexts/auth-context";
 import { apiRequest } from "@/lib/queryClient";
-import navimedLogo from "@assets/JPG_1753663321927.jpg";
+import navimedLogo from "../assets/JPG_1753663321927.jpg";
 
 interface Doctor {
   id: string;

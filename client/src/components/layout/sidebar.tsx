@@ -122,7 +122,7 @@ import {
   Radio,
   Headphones
 } from "lucide-react";
-import navimedLogo from "@assets/JPG_1753663321927.jpg";
+import navimedLogo from "../../assets/JPG_1753663321927.jpg";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";

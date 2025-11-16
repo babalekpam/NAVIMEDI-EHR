@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Lock, Eye, EyeOff, CheckCircle, ArrowLeft } from "lucide-react";
-import navimedLogo from "@assets/JPG_1753663321927.jpg";
+import navimedLogo from "../assets/JPG_1753663321927.jpg";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function ResetPasswordPage() {
