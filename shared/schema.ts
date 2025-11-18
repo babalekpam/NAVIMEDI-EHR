@@ -2272,8 +2272,8 @@ export const medicalCommunications = pgTable("medical_communications", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   tenantId: uuid("tenant_id").references(() => tenants.id).notNull(),
   patientId: uuid("patient_id").references(() => patients.id).notNull(),
-  senderId: uuid("sender_id").references(() => users.id).notNull(),
-  recipientId: uuid("recipient_id").references(() => users.id),
+  senderId: varchar("sender_id").references(() => users.id).notNull(),
+  recipientId: varchar("recipient_id").references(() => users.id),
   type: communicationTypeEnum("type").notNull(),
   priority: priorityLevelEnum("priority").default('normal'),
   originalLanguage: text("original_language").notNull().default('en'),
@@ -4016,11 +4016,26 @@ export const insertReportSchema = createInsertSchema(reports).omit({
 });
 
 // Multilingual Communication Insert Schemas
+// Full insert schema for database operations
 export const insertMedicalCommunicationSchema = createInsertSchema(medicalCommunications).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
   readAt: true
+});
+
+// Client-side validation schema for request body (excludes server-side fields)
+export const medicalCommunicationRequestSchema = z.object({
+  type: z.enum(['medical_instruction', 'prescription_note', 'discharge_summary', 'appointment_reminder', 'lab_result', 'general_message', 'emergency_alert']),
+  priority: z.enum(['low', 'normal', 'high', 'urgent']),
+  originalContent: z.record(z.any()).refine((val) => Object.keys(val).length > 0, 'Original content is required and cannot be empty'),
+  originalLanguage: z.string().default('en'),
+  targetLanguages: z.array(z.string()).default(['en']),
+  metadata: z.record(z.any()).optional(),
+  recipientId: z.string().optional(),
+  appointmentId: z.string().uuid().optional(),
+  prescriptionId: z.string().uuid().optional(),
+  labOrderId: z.string().uuid().optional()
 });
 
 export const insertCommunicationTranslationSchema = createInsertSchema(communicationTranslations).omit({

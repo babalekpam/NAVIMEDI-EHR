@@ -35,7 +35,7 @@ import multer from "multer";
 import csv from "csv-parser";
 import { Readable } from "stream";
 import { db } from "./db";
-import { tenants, users, pharmacies, prescriptions, insuranceClaims, insertLabResultSchema, type InsuranceClaim, labOrders, appointments, patients, countries, countryMedicalCodes, medicalCodeUploads, clinicalAlerts, trainingEnrollments, insertTrainingEnrollmentSchema } from "@shared/schema";
+import { tenants, users, pharmacies, prescriptions, insuranceClaims, insertLabResultSchema, type InsuranceClaim, labOrders, appointments, patients, countries, countryMedicalCodes, medicalCodeUploads, clinicalAlerts, trainingEnrollments, insertTrainingEnrollmentSchema, medicalCommunications, medicalCommunicationRequestSchema } from "@shared/schema";
 import { eq, and, desc, or, sql, ilike } from "drizzle-orm";
 import Stripe from "stripe";
 
@@ -5118,6 +5118,98 @@ to the patient and authorized healthcare providers.
     } catch (error) {
       console.error('Error generating lab PDF:', error);
       res.status(500).json({ message: 'Failed to generate lab report' });
+    }
+  });
+
+  // Get medical communications for the authenticated patient
+  app.get('/api/medical-communications', authenticateToken, async (req, res) => {
+    try {
+      const { id: userId } = req.user as any;
+      
+      console.log(`💬 MEDICAL COMMUNICATIONS - Getting communications for user ${userId}`);
+      
+      const [patient] = await db.select().from(patients)
+        .where(eq(patients.userAccountId, userId));
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const communications = await db.select().from(medicalCommunications)
+        .where(eq(medicalCommunications.patientId, patient.id))
+        .orderBy(desc(medicalCommunications.createdAt));
+      
+      console.log(`💬 Found ${communications.length} communications for patient ${patient.firstName} ${patient.lastName}`);
+      res.json(communications);
+    } catch (error) {
+      console.error('Error fetching medical communications:', error);
+      res.status(500).json({ message: 'Failed to fetch medical communications' });
+    }
+  });
+
+  // Send new medical communication for the authenticated patient
+  app.post('/api/medical-communications', authenticateToken, async (req, res) => {
+    try {
+      const { id: userId, tenantId } = req.user as any;
+      
+      console.log(`💬 MEDICAL COMMUNICATIONS - Creating communication from user ${userId}`);
+      
+      const [patient] = await db.select().from(patients)
+        .where(eq(patients.userAccountId, userId));
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      // Validate request body with Zod schema
+      const validatedBody = medicalCommunicationRequestSchema.parse(req.body);
+      
+      // Merge validated request data with server-side fields
+      const communicationData = {
+        ...validatedBody,
+        tenantId,
+        patientId: patient.id,
+        senderId: userId,
+        isRead: false
+      };
+      
+      const [newCommunication] = await db.insert(medicalCommunications).values(communicationData).returning();
+      
+      console.log(`💬 Created communication ${newCommunication.id} for patient ${patient.firstName} ${patient.lastName}`);
+      res.status(201).json(newCommunication);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.log('❌ Validation failed:', error.errors);
+        return res.status(400).json({ message: 'Invalid communication data', errors: error.errors });
+      }
+      console.error('Error creating medical communication:', error);
+      res.status(500).json({ message: 'Failed to create medical communication' });
+    }
+  });
+
+  // Get billing/insurance claims for the authenticated patient
+  app.get('/api/patient/bills', authenticateToken, async (req, res) => {
+    try {
+      const { id: userId } = req.user as any;
+      
+      console.log(`💰 PATIENT BILLS - Getting bills for user ${userId}`);
+      
+      const [patient] = await db.select().from(patients)
+        .where(eq(patients.userAccountId, userId));
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const patientBills = await db.select().from(insuranceClaims)
+        .where(eq(insuranceClaims.patientId, patient.id))
+        .orderBy(desc(insuranceClaims.createdAt));
+      
+      console.log(`💰 Found ${patientBills.length} bills for patient ${patient.firstName} ${patient.lastName}`);
+      res.json(patientBills);
+    } catch (error) {
+      console.error('Error fetching patient bills:', error);
+      res.status(500).json({ message: 'Failed to fetch patient bills' });
     }
   });
 
