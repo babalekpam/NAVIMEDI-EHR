@@ -53,13 +53,40 @@ curl -X POST https://navimedi.org/api/auth/login \
 
 ## 📱 Mobile App Code Example
 
-### JavaScript/React Native:
+### Using the NaviMED Client (RECOMMENDED):
+```javascript
+import { navimedClient } from './NaviMEDClient';
+
+// Login with email, password, and organization
+const loginResponse = await navimedClient.login(
+  'sarah.johnson@email.com',
+  'password123',
+  'SAINT PAUL'
+);
+
+console.log('Logged in!', loginResponse.user);
+
+// Get appointments (token automatically included)
+const appointments = await navimedClient.getAppointments();
+console.log('Appointments:', appointments);
+
+// Get prescriptions
+const prescriptions = await navimedClient.getPrescriptions();
+
+// Get lab results
+const labResults = await navimedClient.getLabResults();
+
+// Get messages
+const messages = await navimedClient.getMessages();
+```
+
+### Raw Axios (Manual approach):
 ```javascript
 import axios from 'axios';
 
 const API_BASE = 'https://navimedi.org/api';
 
-// Login
+// Login - MUST include email, password, AND tenantId
 const response = await axios.post(`${API_BASE}/auth/login`, {
   email: 'sarah.johnson@email.com',
   password: 'password123',

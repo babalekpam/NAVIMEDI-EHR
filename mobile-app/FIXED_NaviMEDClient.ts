@@ -82,13 +82,15 @@ class NaviMEDClient {
     }
   }
 
-  async login(username: string, password: string): Promise<LoginResponse> {
+  async login(email: string, password: string, tenantId: string): Promise<LoginResponse> {
     try {
-      console.log('[NaviMED] Attempting login for:', username);
+      console.log('[NaviMED] Attempting login for:', email);
+      console.log('[NaviMED] Organization:', tenantId);
       
       const response = await axios.post(`${API_BASE_URL}/auth/login`, {
-        username,
+        email,
         password,
+        tenantId,
       });
       
       console.log('[NaviMED] ✅ Login successful');
@@ -251,8 +253,9 @@ export async function testNaviMEDAPI() {
   console.log('\n2. Testing login...');
   try {
     const loginResponse = await navimedClient.login(
-      'patient@example.com',  // ← CHANGE THIS
-      'yourpassword'          // ← CHANGE THIS
+      'sarah.johnson@email.com',  // ← Email
+      'password123',              // ← Password
+      'SAINT PAUL'                // ← Organization/Hospital name
     );
     console.log('✅ Login successful!');
     console.log('User:', loginResponse.user);
