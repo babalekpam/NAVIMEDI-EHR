@@ -1,0 +1,181 @@
+═══════════════════════════════════════════════════════════
+NaviMED API - All Endpoints (Copy & Paste)
+═══════════════════════════════════════════════════════════
+
+BASE URL: https://navimedi.org/api
+
+═══════════════════════════════════════════════════════════
+AUTHENTICATION (No Token Needed)
+═══════════════════════════════════════════════════════════
+
+Login:
+POST https://navimedi.org/api/auth/login
+Body: {"username":"patient@example.com","password":"password"}
+
+Forgot Password:
+POST https://navimedi.org/api/auth/forgot-password
+Body: {"email":"patient@example.com"}
+
+Reset Password:
+POST https://navimedi.org/api/auth/reset-password
+Body: {"token":"reset-token","newPassword":"NewPass123!"}
+
+═══════════════════════════════════════════════════════════
+PATIENT PROFILE (Needs Token)
+═══════════════════════════════════════════════════════════
+
+Get Profile:
+GET https://navimedi.org/api/patient/profile
+Header: Authorization: Bearer {your-token}
+
+Update Profile:
+PATCH https://navimedi.org/api/patients/{patientId}
+Header: Authorization: Bearer {your-token}
+Body: {"phone":"+1234567890","email":"new@email.com"}
+
+═══════════════════════════════════════════════════════════
+APPOINTMENTS (Needs Token)
+═══════════════════════════════════════════════════════════
+
+Get All Appointments:
+GET https://navimedi.org/api/patient/appointments
+Header: Authorization: Bearer {your-token}
+
+Book Appointment:
+POST https://navimedi.org/api/appointments
+Header: Authorization: Bearer {your-token}
+Body: {"doctorId":"doc-123","appointmentDate":"2025-12-15T14:00:00Z","reason":"Checkup"}
+
+Cancel Appointment:
+PATCH https://navimedi.org/api/appointments/{appointmentId}
+Header: Authorization: Bearer {your-token}
+Body: {"status":"cancelled","cancellationReason":"Emergency"}
+
+═══════════════════════════════════════════════════════════
+PRESCRIPTIONS (Needs Token)
+═══════════════════════════════════════════════════════════
+
+Get All Prescriptions:
+GET https://navimedi.org/api/patient/prescriptions
+Header: Authorization: Bearer {your-token}
+
+Request Refill:
+PATCH https://navimedi.org/api/prescriptions/{prescriptionId}
+Header: Authorization: Bearer {your-token}
+Body: {"status":"refill_requested","notes":"Need refill"}
+
+═══════════════════════════════════════════════════════════
+LAB RESULTS (Needs Token)
+═══════════════════════════════════════════════════════════
+
+Get All Lab Results:
+GET https://navimedi.org/api/patient/lab-results
+Header: Authorization: Bearer {your-token}
+
+Download Lab Result PDF:
+GET https://navimedi.org/api/patient/lab-results/{labResultId}/pdf
+Header: Authorization: Bearer {your-token}
+
+═══════════════════════════════════════════════════════════
+MESSAGES (Needs Token)
+═══════════════════════════════════════════════════════════
+
+Get All Messages:
+GET https://navimedi.org/api/medical-communications
+Header: Authorization: Bearer {your-token}
+
+Send Message to Doctor:
+POST https://navimedi.org/api/medical-communications
+Header: Authorization: Bearer {your-token}
+Body: {"subject":"Question","message":"I need help","recipientId":"doctor-id"}
+
+Mark Message as Read:
+PATCH https://navimedi.org/api/medical-communications/{messageId}
+Header: Authorization: Bearer {your-token}
+Body: {"isRead":true}
+
+═══════════════════════════════════════════════════════════
+PAYMENTS (Needs Token)
+═══════════════════════════════════════════════════════════
+
+Create Payment Intent:
+POST https://navimedi.org/api/create-payment-intent
+Header: Authorization: Bearer {your-token}
+Body: {"amount":120.00,"billId":"bill-123"}
+
+═══════════════════════════════════════════════════════════
+QUICK COPY - ALL ENDPOINTS
+═══════════════════════════════════════════════════════════
+
+POST   https://navimedi.org/api/auth/login
+POST   https://navimedi.org/api/auth/forgot-password
+POST   https://navimedi.org/api/auth/reset-password
+GET    https://navimedi.org/api/patient/profile
+PATCH  https://navimedi.org/api/patients/{id}
+GET    https://navimedi.org/api/patient/appointments
+POST   https://navimedi.org/api/appointments
+PATCH  https://navimedi.org/api/appointments/{id}
+GET    https://navimedi.org/api/patient/prescriptions
+PATCH  https://navimedi.org/api/prescriptions/{id}
+GET    https://navimedi.org/api/patient/lab-results
+GET    https://navimedi.org/api/patient/lab-results/{id}/pdf
+GET    https://navimedi.org/api/medical-communications
+POST   https://navimedi.org/api/medical-communications
+PATCH  https://navimedi.org/api/medical-communications/{id}
+POST   https://navimedi.org/api/create-payment-intent
+
+═══════════════════════════════════════════════════════════
+TEST IT WITH CURL
+═══════════════════════════════════════════════════════════
+
+# 1. Login
+curl -X POST https://navimedi.org/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"patient@example.com","password":"yourpassword"}'
+
+# You'll get back: {"token":"eyJhbGc...","user":{...}}
+# Copy the token
+
+# 2. Get Appointments (use your token)
+curl -X GET https://navimedi.org/api/patient/appointments \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+
+# 3. Get Prescriptions
+curl -X GET https://navimedi.org/api/patient/prescriptions \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+
+# 4. Get Lab Results
+curl -X GET https://navimedi.org/api/patient/lab-results \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+
+═══════════════════════════════════════════════════════════
+JAVASCRIPT EXAMPLE
+═══════════════════════════════════════════════════════════
+
+const axios = require('axios');
+const BASE_URL = 'https://navimedi.org/api';
+
+// Login
+const login = await axios.post(`${BASE_URL}/auth/login`, {
+  username: 'patient@example.com',
+  password: 'yourpassword'
+});
+
+const token = login.data.token;
+
+// Get appointments
+const appointments = await axios.get(`${BASE_URL}/patient/appointments`, {
+  headers: { Authorization: `Bearer ${token}` }
+});
+
+console.log(appointments.data);
+
+═══════════════════════════════════════════════════════════
+STATUS: ✅ ALL APIS ARE LIVE AND WORKING
+═══════════════════════════════════════════════════════════
+
+Production URL: https://navimedi.org/api
+Documentation: See API_ENDPOINTS.md for full details
+Mobile Code: See mobile-app/ folder for ready-to-use code
+
+© 2025 NaviMED by ARGILETTE Lab
