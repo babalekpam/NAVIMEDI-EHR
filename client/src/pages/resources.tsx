@@ -50,6 +50,9 @@ import { useToast } from "@/hooks/use-toast";
 export default function ResourcesPage() {
   const { toast } = useToast();
   
+  // Category Filter State
+  const [activeCategory, setActiveCategory] = useState<string>("All Resources");
+  
   // ROI Calculator State
   const [operatingCosts, setOperatingCosts] = useState<number>(0);
   const [efficiencyImprovement, setEfficiencyImprovement] = useState<number>(0);
@@ -254,6 +257,11 @@ export default function ResourcesPage() {
   const categories = Array.from(new Set(resources.map(r => r.category)));
   const types = Array.from(new Set(resources.map(r => r.type)));
 
+  // Filter resources based on active category
+  const filteredResources = activeCategory === "All Resources" 
+    ? resources 
+    : resources.filter(r => r.category === activeCategory);
+
   const webinars = [
     {
       title: "Reducing Healthcare Administrative Burden: Real-World Strategies",
@@ -407,11 +415,30 @@ export default function ResourcesPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">Explore by Category</h2>
             <div className="flex flex-wrap justify-center gap-3">
-              <Badge variant="outline" className="px-4 py-2 cursor-pointer hover:bg-emerald-50 hover:border-emerald-300">
+              <Badge 
+                variant="outline" 
+                className={`px-4 py-2 cursor-pointer transition-all ${
+                  activeCategory === "All Resources" 
+                    ? "bg-emerald-600 text-white border-emerald-600" 
+                    : "hover:bg-emerald-50 hover:border-emerald-300"
+                }`}
+                onClick={() => setActiveCategory("All Resources")}
+                data-testid="category-all-resources"
+              >
                 All Resources
               </Badge>
               {categories.map((category) => (
-                <Badge key={category} variant="outline" className="px-4 py-2 cursor-pointer hover:bg-blue-50 hover:border-blue-300">
+                <Badge 
+                  key={category} 
+                  variant="outline" 
+                  className={`px-4 py-2 cursor-pointer transition-all ${
+                    activeCategory === category 
+                      ? "bg-blue-600 text-white border-blue-600" 
+                      : "hover:bg-blue-50 hover:border-blue-300"
+                  }`}
+                  onClick={() => setActiveCategory(category)}
+                  data-testid={`category-${category.toLowerCase().replace(/\s+/g, '-')}`}
+                >
                   {category}
                 </Badge>
               ))}
@@ -437,7 +464,7 @@ export default function ResourcesPage() {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-            {resources.filter(r => r.featured || r.popular).map((resource) => {
+            {filteredResources.filter(r => r.featured || r.popular).map((resource) => {
               const IconComponent = resource.icon;
               return (
                 <Card key={resource.id} className="group border-emerald-200 hover:border-emerald-400 hover:shadow-2xl transition-all duration-500 bg-white">
@@ -505,7 +532,7 @@ export default function ResourcesPage() {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {resources.map((resource) => {
+            {filteredResources.map((resource) => {
               const IconComponent = resource.icon;
               return (
                 <Card key={resource.id} className="group border-slate-200 hover:border-emerald-400 hover:shadow-lg transition-all duration-300">

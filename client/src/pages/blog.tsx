@@ -126,6 +126,27 @@ export default function BlogPage() {
   const featuredPosts = blogPosts.filter(post => post.featured);
   const recentPosts = blogPosts.filter(post => !post.featured);
 
+  // Handler for newsletter subscription
+  const handleNewsletterSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    const emailInput = (e.target as HTMLFormElement).querySelector('input[type="email"]') as HTMLInputElement;
+    const email = emailInput?.value;
+    
+    if (email) {
+      // In a real implementation, this would send to your email service
+      alert(`Thank you for subscribing! Confirmation sent to: ${email}`);
+      emailInput.value = '';
+    }
+  };
+
+  // Handler to scroll to featured posts section
+  const scrollToFeaturedPosts = () => {
+    const featuredSection = document.querySelector('#featured-posts');
+    if (featuredSection) {
+      featuredSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 to-emerald-50/30">
       <SEOHead 
@@ -204,7 +225,7 @@ export default function BlogPage() {
       </section>
 
       {/* Featured Posts */}
-      <section className="py-16 bg-white/50">
+      <section id="featured-posts" className="py-16 bg-white/50">
         <div className="container mx-auto px-6">
           <div className="flex items-center justify-between mb-12">
             <div>
@@ -369,7 +390,11 @@ export default function BlogPage() {
           </div>
 
           <div className="text-center mt-12">
-            <Button className="bg-emerald-600 hover:bg-emerald-700" data-testid="view-all-posts">
+            <Button 
+              className="bg-emerald-600 hover:bg-emerald-700" 
+              data-testid="view-all-posts"
+              onClick={scrollToFeaturedPosts}
+            >
               <FileText className="w-4 h-4 mr-2" />
               View All Posts
             </Button>
@@ -488,20 +513,22 @@ export default function BlogPage() {
             </p>
             
             <div className="bg-white/10 backdrop-blur rounded-2xl p-8">
-              <div className="flex flex-col md:flex-row gap-4 max-w-md mx-auto">
+              <form onSubmit={handleNewsletterSubscribe} className="flex flex-col md:flex-row gap-4 max-w-md mx-auto">
                 <input 
                   type="email" 
                   placeholder="Enter your email address"
                   className="flex-1 px-4 py-3 rounded-lg border border-white/20 bg-white/10 placeholder:text-white/70 text-white focus:ring-2 focus:ring-white/50 focus:border-transparent"
                   data-testid="newsletter-email-input"
+                  required
                 />
                 <Button 
+                  type="submit"
                   className="bg-white text-emerald-600 hover:bg-emerald-50 font-semibold px-6"
                   data-testid="newsletter-subscribe"
                 >
                   Subscribe
                 </Button>
-              </div>
+              </form>
               <p className="text-sm text-emerald-100 mt-4">
                 Join 15,000+ healthcare professionals. Unsubscribe anytime.
               </p>
