@@ -986,6 +986,7 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
 
 export const patients = pgTable("patients", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userAccountId: varchar("user_account_id").references(() => users.id),
   tenantId: uuid("tenant_id").references(() => tenants.id).notNull(),
   mrn: text("mrn").notNull(),
   // Tenant-specific patient ID (unique within each hospital/clinic)

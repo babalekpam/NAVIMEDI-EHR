@@ -4887,14 +4887,20 @@ Please attach all required supporting documentation.
     try {
       const { id: userId, tenantId } = req.user as any;
       
-      // For patient users, their ID is also their patient ID
-      console.log(`🩺 PATIENT PRESCRIPTIONS - Getting prescriptions for patient ${userId}`);
+      console.log(`🩺 PATIENT PRESCRIPTIONS - Getting prescriptions for user ${userId}`);
+      
+      const [patient] = await db.select().from(patients)
+        .where(eq(patients.userAccountId, userId));
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
       
       const patientPrescriptions = await db.select().from(prescriptions)
-        .where(eq(prescriptions.patientId, userId))
+        .where(eq(prescriptions.patientId, patient.id))
         .orderBy(desc(prescriptions.prescribedDate));
       
-      console.log(`🩺 Found ${patientPrescriptions.length} prescriptions for patient ${userId}`);
+      console.log(`🩺 Found ${patientPrescriptions.length} prescriptions for patient ${patient.firstName} ${patient.lastName}`);
       res.json(patientPrescriptions);
     } catch (error) {
       console.error('Error fetching patient prescriptions:', error);
@@ -4907,14 +4913,21 @@ Please attach all required supporting documentation.
     try {
       const { id: userId } = req.user as any;
       
-      console.log(`🧪 PATIENT LAB RESULTS - Getting lab results for patient ${userId}`);
+      console.log(`🧪 PATIENT LAB RESULTS - Getting lab results for user ${userId}`);
+      
+      const [patient] = await db.select().from(patients)
+        .where(eq(patients.userAccountId, userId));
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
       
       // Get lab orders for this patient
       const patientLabOrders = await db.select().from(labOrders)
-        .where(eq(labOrders.patientId, userId))
+        .where(eq(labOrders.patientId, patient.id))
         .orderBy(desc(labOrders.orderedDate));
       
-      console.log(`🧪 Found ${patientLabOrders.length} lab orders for patient ${userId}`);
+      console.log(`🧪 Found ${patientLabOrders.length} lab orders for patient ${patient.firstName} ${patient.lastName}`);
       res.json(patientLabOrders);
     } catch (error) {
       console.error('Error fetching patient lab results:', error);
@@ -4927,13 +4940,20 @@ Please attach all required supporting documentation.
     try {
       const { id: userId } = req.user as any;
       
-      console.log(`📅 PATIENT APPOINTMENTS - Getting appointments for patient ${userId}`);
+      console.log(`📅 PATIENT APPOINTMENTS - Getting appointments for user ${userId}`);
+      
+      const [patient] = await db.select().from(patients)
+        .where(eq(patients.userAccountId, userId));
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
       
       const patientAppointments = await db.select().from(appointments)
-        .where(eq(appointments.patientId, userId))
+        .where(eq(appointments.patientId, patient.id))
         .orderBy(desc(appointments.appointmentDate));
       
-      console.log(`📅 Found ${patientAppointments.length} appointments for patient ${userId}`);
+      console.log(`📅 Found ${patientAppointments.length} appointments for patient ${patient.firstName} ${patient.lastName}`);
       res.json(patientAppointments);
     } catch (error) {
       console.error('Error fetching patient appointments:', error);
@@ -4946,10 +4966,10 @@ Please attach all required supporting documentation.
     try {
       const { id: userId } = req.user as any;
       
-      console.log(`👤 PATIENT PROFILE - Getting profile for patient ${userId}`);
+      console.log(`👤 PATIENT PROFILE - Getting profile for user ${userId}`);
       
       const [patientProfile] = await db.select().from(patients)
-        .where(eq(patients.id, userId));
+        .where(eq(patients.userAccountId, userId));
       
       if (!patientProfile) {
         return res.status(404).json({ message: 'Patient profile not found' });
@@ -4969,24 +4989,25 @@ Please attach all required supporting documentation.
       const { id: userId } = req.user as any;
       const { id } = req.params;
       
-      console.log('📄 GENERATING LAB PDF - For lab result', id, 'patient', userId);
+      console.log('📄 GENERATING LAB PDF - For lab result', id, 'user', userId);
+      
+      // Get patient record
+      const [patient] = await db.select().from(patients)
+        .where(eq(patients.userAccountId, userId));
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
       
       // Get the lab order details
       const [labOrder] = await db.select().from(labOrders)
         .where(and(
           eq(labOrders.id, id),
-          eq(labOrders.patientId, userId)
+          eq(labOrders.patientId, patient.id)
         ));
       
       if (!labOrder) {
         return res.status(404).json({ message: 'Lab result not found' });
-      }
-      
-      const [patient] = await db.select().from(patients)
-        .where(eq(patients.id, userId));
-      
-      if (!patient) {
-        return res.status(404).json({ message: 'Patient not found' });
       }
       
       // Generate professional lab report content
