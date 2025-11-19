@@ -1,0 +1,67 @@
+sed -i 's/SMTP_SECURE=false/SMTP_SECURE=true/' .env
+cat .env | grep SMTP
+# SMTP Email Configuration
+SMTP_HOST=mail.navimedi.org
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=noreply@navimedi.org
+SMTP_PASS=*************
+[root@mail carnet-standalone]# pm2 restart carnet-patient-portal
+sleep 3
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [carnet-patient-portal](ids: [ 4 ])
+[PM2] [carnet-patient-portal](4) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 4  │ carnet-patient-po… │ fork     │ 1    │ online    │ 0%       │ 18.0mb   │
+│ 0  │ navimed            │ fork     │ 135  │ online    │ 0%       │ 74.7mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@mail carnet-standalone]# curl -X POST https://navimedi.org/api/carnet/invitation/send-invitation \
+  -H "Content-Type: application/json" \
+  -d '{
+    "patientName": "Test Patient",
+    "patientEmail": "test@example.com",
+    "tempPassword": "TestPass123",
+    "tenantName": "SAINT PAUL",
+    "hospitalName": "SAINT PAUL Hospital"
+  }'
+{"success":false,"error":"Failed to send invitation email"}[root@mail carnet-standalone]# pm2 logs carnet-patient-portal --lines 30 --nostream        pm2 logs carnet-patient-portal --lines 30 --nostream
+[TAILING] Tailing last 30 lines for [carnet-patient-portal] process (change the value with --lines option)
+/root/.pm2/logs/carnet-patient-portal-out-4.log last 30 lines:
+4|carnet-p | 🚀 CARNET server running on port 5001
+4|carnet-p | 🚀 CARNET server running on port 5001
+
+/root/.pm2/logs/carnet-patient-portal-error-4.log last 30 lines:
+4|carnet-p | designed for a production environment, as it will leak
+4|carnet-p | memory, and will not scale past a single process.
+4|carnet-p | Error sending invitation: Error: connect ECONNREFUSED 74.208.166.77:587
+4|carnet-p |     at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16) {
+4|carnet-p |   errno: -111,
+4|carnet-p |   code: 'ESOCKET',
+4|carnet-p |   syscall: 'connect',
+4|carnet-p |   address: '74.208.166.77',
+4|carnet-p |   port: 587,
+4|carnet-p |   command: 'CONN'
+4|carnet-p | }
+4|carnet-p | Warning: connect.session() MemoryStore is not
+4|carnet-p | designed for a production environment, as it will leak
+4|carnet-p | memory, and will not scale past a single process.
+4|carnet-p | Error sending invitation: Error: Invalid login: 535 5.7.8 Error: authentication failed: authentication failure
+4|carnet-p |     at SMTPConnection._formatError (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/node_modules/nodemailer/lib/smtp-connection/index.js:809:19)
+4|carnet-p |     at SMTPConnection._actionAUTHComplete (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/node_modules/nodemailer/lib/smtp-connection/index.js:1595:34)
+4|carnet-p |     at SMTPConnection.<anonymous> (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/node_modules/nodemailer/lib/smtp-connection/index.js:556:26)
+4|carnet-p |     at SMTPConnection._processResponse (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/node_modules/nodemailer/lib/smtp-connection/index.js:993:20)
+4|carnet-p |     at SMTPConnection._onData (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/node_modules/nodemailer/lib/smtp-connection/index.js:774:14)
+4|carnet-p |     at SMTPConnection._onSocketData (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/node_modules/nodemailer/lib/smtp-connection/index.js:195:44)
+4|carnet-p |     at TLSSocket.emit (node:events:524:28)
+4|carnet-p |     at addChunk (node:internal/streams/readable:561:12)
+4|carnet-p |     at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+4|carnet-p |     at Readable.push (node:internal/streams/readable:392:5) {
+4|carnet-p |   code: 'EAUTH',
+4|carnet-p |   response: '535 5.7.8 Error: authentication failed: authentication failure',
+4|carnet-p |   responseCode: 535,
+4|carnet-p |   command: 'AUTH PLAIN'
+4|carnet-p | }
+
+[root@mail carnet-standalone]# 
