@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#2563eb">
-    <title>NaviMED Patient Portal</title>
+    <title>CARNET - Patient Health Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -19,6 +19,7 @@
         .badge-warning { background: #fef3c7; color: #92400e; }
         .badge-info { background: #dbeafe; color: #1e40af; }
         .hidden { display: none !important; }
+        .logo { max-width: 200px; height: auto; margin: 0 auto 1.5rem; display: block; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -33,15 +34,15 @@
         const auth = {
             saveToken: (token) => {
                 authToken = token;
-                localStorage.setItem('navimed_token', token);
+                localStorage.setItem('carnet_token', token);
             },
             getToken: () => {
-                if (!authToken) authToken = localStorage.getItem('navimed_token');
+                if (!authToken) authToken = localStorage.getItem('carnet_token');
                 return authToken;
             },
             clearToken: () => {
                 authToken = null;
-                localStorage.removeItem('navimed_token');
+                localStorage.removeItem('carnet_token');
             },
             isAuthenticated: () => !!auth.getToken()
         };
@@ -103,8 +104,9 @@
                 app.innerHTML = `
                     <div class="max-w-md mx-auto p-6 mt-20">
                         <div class="card">
-                            <h1 class="text-3xl font-bold text-blue-600 mb-6 text-center">NaviMED</h1>
-                            <h2 class="text-xl font-semibold mb-6 text-center">Patient Portal</h2>
+                            <img src="carnet-logo.png" alt="CARNET Logo" class="logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <h1 class="text-3xl font-bold text-blue-600 mb-6 text-center" style="display:none;">CARNET</h1>
+                            <h2 class="text-xl font-semibold mb-6 text-center">Patient Health Portal</h2>
                             <form onsubmit="handleLogin(event)" class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Email</label>

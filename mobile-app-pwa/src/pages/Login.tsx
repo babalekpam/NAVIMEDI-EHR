@@ -32,8 +32,14 @@ export default function Login() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-blue-600 mb-2">NaviMED</h1>
-            <p className="text-gray-600">Patient Portal</p>
+            <img 
+              src="/carnet-logo.png" 
+              alt="CARNET Logo" 
+              className="mx-auto mb-4 max-w-[200px] h-auto"
+              onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.removeAttribute('style'); }}
+            />
+            <h1 className="text-3xl font-bold text-blue-600 mb-2" style={{ display: 'none' }}>CARNET</h1>
+            <p className="text-gray-600">Patient Health Portal</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

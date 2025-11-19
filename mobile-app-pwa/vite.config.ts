@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'NaviMED Patient Portal',
-        short_name: 'NaviMED',
+        name: 'CARNET - Patient Health Portal',
+        short_name: 'CARNET',
         description: 'Access your medical records, appointments, and more',
         theme_color: '#2563eb',
         background_color: '#ffffff',
