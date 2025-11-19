@@ -1,0 +1,125 @@
+^C
+[root@mail carnet-standalone]# mv ecosystem.config.js ecosystem.config.cjs
+[root@mail carnet-standalone]# pm2 start ecosystem.config.cjs
+[PM2][WARN] Applications carnet-patient-portal not running, starting...
+[PM2] App [carnet-patient-portal] launched (1 instances)
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 3  │ carnet-patient-po… │ fork     │ 0    │ online    │ 0%       │ 13.3mb   │
+│ 0  │ navimed            │ fork     │ 135  │ online    │ 0%       │ 77.5mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@mail carnet-standalone]# pm2 status
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 3  │ carnet-patient-po… │ fork     │ 8    │ online    │ 0%       │ 64.2mb   │
+│ 0  │ navimed            │ fork     │ 135  │ online    │ 0%       │ 77.4mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@mail carnet-standalone]# pm2 logs carnet-patient-portal --lines 30
+[TAILING] Tailing last 30 lines for [carnet-patient-portal] process (change the value with --lines option)
+/root/.pm2/logs/carnet-patient-portal-out-3.log last 30 lines:
+/root/.pm2/logs/carnet-patient-portal-error-3.log last 30 lines:
+3|carnet-p |     at <anonymous> (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6:9)
+3|carnet-p |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+3|carnet-p |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+3|carnet-p |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+3|carnet-p | 
+3|carnet-p | Node.js v20.19.5
+3|carnet-p | /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6
+3|carnet-p |   throw new Error('DATABASE_URL environment variable is not set');
+3|carnet-p |         ^
+3|carnet-p | 
+3|carnet-p | 
+3|carnet-p | Error: DATABASE_URL environment variable is not set
+3|carnet-p |     at <anonymous> (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6:9)
+3|carnet-p |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+3|carnet-p |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+3|carnet-p |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+3|carnet-p | 
+3|carnet-p | Node.js v20.19.5
+3|carnet-p | /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6
+3|carnet-p |   throw new Error('DATABASE_URL environment variable is not set');
+3|carnet-p |         ^
+3|carnet-p | 
+3|carnet-p | 
+3|carnet-p | Error: DATABASE_URL environment variable is not set
+3|carnet-p |     at <anonymous> (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6:9)
+3|carnet-p |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+3|carnet-p |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+3|carnet-p |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+3|carnet-p | 
+3|carnet-p | Node.js v20.19.5
+
+3|carnet-patient-portal  | /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6
+3|carnet-patient-portal  |   throw new Error('DATABASE_URL environment variable is not set');
+3|carnet-patient-portal  |         ^
+3|carnet-patient-portal  | Error: DATABASE_URL environment variable is not set
+3|carnet-patient-portal  |     at <anonymous> (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6:9)
+3|carnet-patient-portal  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+3|carnet-patient-portal  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+3|carnet-patient-portal  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+3|carnet-patient-portal  | Node.js v20.19.5
+3|carnet-patient-portal  | /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6
+3|carnet-patient-portal  |   throw new Error('DATABASE_URL environment variable is not set');
+3|carnet-patient-portal  |         ^
+3|carnet-patient-portal  | Error: DATABASE_URL environment variable is not set
+3|carnet-patient-portal  |     at <anonymous> (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6:9)
+3|carnet-patient-portal  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+3|carnet-patient-portal  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+3|carnet-patient-portal  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+3|carnet-patient-portal  | Node.js v20.19.5
+3|carnet-patient-portal  | /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6
+3|carnet-patient-portal  |   throw new Error('DATABASE_URL environment variable is not set');
+3|carnet-patient-portal  |         ^
+3|carnet-patient-portal  | Error: DATABASE_URL environment variable is not set
+3|carnet-patient-portal  |     at <anonymous> (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6:9)
+3|carnet-patient-portal  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+3|carnet-patient-portal  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+3|carnet-patient-portal  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+3|carnet-patient-portal  | Node.js v20.19.5
+3|carnet-patient-portal  | /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6
+3|carnet-patient-portal  |   throw new Error('DATABASE_URL environment variable is not set');
+3|carnet-patient-portal  |         ^
+3|carnet-patient-portal  | Error: DATABASE_URL environment variable is not set
+3|carnet-patient-portal  |     at <anonymous> (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6:9)
+3|carnet-patient-portal  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+3|carnet-patient-portal  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+3|carnet-patient-portal  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+3|carnet-patient-portal  | Node.js v20.19.5
+3|carnet-patient-portal  | /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6
+3|carnet-patient-portal  |   throw new Error('DATABASE_URL environment variable is not set');
+3|carnet-patient-portal  |         ^
+3|carnet-patient-portal  | Error: DATABASE_URL environment variable is not set
+3|carnet-patient-portal  |     at <anonymous> (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6:9)
+3|carnet-patient-portal  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+3|carnet-patient-portal  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+3|carnet-patient-portal  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+3|carnet-patient-portal  | Node.js v20.19.5
+3|carnet-patient-portal  | /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6
+3|carnet-patient-portal  |   throw new Error('DATABASE_URL environment variable is not set');
+3|carnet-patient-portal  |         ^
+3|carnet-patient-portal  | Error: DATABASE_URL environment variable is not set
+3|carnet-patient-portal  |     at <anonymous> (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6:9)
+3|carnet-patient-portal  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+3|carnet-patient-portal  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+3|carnet-patient-portal  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+3|carnet-patient-portal  | Node.js v20.19.5
+3|carnet-patient-portal  | /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6
+3|carnet-patient-portal  |   throw new Error('DATABASE_URL environment variable is not set');
+3|carnet-patient-portal  |         ^
+3|carnet-patient-portal  | Error: DATABASE_URL environment variable is not set
+3|carnet-patient-portal  |     at <anonymous> (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6:9)
+3|carnet-patient-portal  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+3|carnet-patient-portal  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+3|carnet-patient-portal  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+3|carnet-patient-portal  | Node.js v20.19.5
+3|carnet-patient-portal  | /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6
+3|carnet-patient-portal  |   throw new Error('DATABASE_URL environment variable is not set');
+3|carnet-patient-portal  |         ^
+3|carnet-patient-portal  | Error: DATABASE_URL environment variable is not set
+3|carnet-patient-portal  |     at <anonymous> (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6:9)
+3|carnet-patient-portal  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+3|carnet-patient-portal  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+3|carnet-patient-portal  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+3|carnet-patient-portal  | Node.js v20.19.5
