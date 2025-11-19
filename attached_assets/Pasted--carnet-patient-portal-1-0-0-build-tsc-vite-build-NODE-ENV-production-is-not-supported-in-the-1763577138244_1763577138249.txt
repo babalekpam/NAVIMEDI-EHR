@@ -1,0 +1,38 @@
+> carnet-patient-portal@1.0.0 build
+> tsc && vite build
+
+NODE_ENV=production is not supported in the .env file. Only NODE_ENV=development is supported to create a development build of your project. If you need to set process.env.NODE_ENV, you can set it in the Vite config instead.
+vite v5.4.21 building for production...
+✓ 1936 modules transformed.
+dist/index.html                   1.00 kB │ gzip:  0.47 kB
+dist/assets/index-CIEkCvM2.css   15.68 kB │ gzip:  3.58 kB
+dist/assets/index-CQqNR7af.js   268.69 kB │ gzip: 81.08 kB
+✓ built in 2.95s
+[root@mail carnet-standalone]# pm2 start server/index.ts --name carnet-patient-portal --interpreter node -- --env production
+[PM2] Starting /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/index.ts in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 1  │ carnet-patient-po… │ fork     │ 0    │ online    │ 0%       │ 18.3mb   │
+│ 0  │ navimed            │ fork     │ 135  │ online    │ 0%       │ 77.0mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@mail carnet-standalone]# pm2 status
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 1  │ carnet-patient-po… │ fork     │ 0    │ online    │ 0%       │ 53.7mb   │
+│ 0  │ navimed            │ fork     │ 135  │ online    │ 0%       │ 77.9mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@mail carnet-standalone]# pm2 logs carnet-patient-portal --lines 20
+[TAILING] Tailing last 20 lines for [carnet-patient-portal] process (change the value with --lines option)
+/root/.pm2/logs/carnet-patient-portal-out.log last 20 lines:
+/root/.pm2/logs/carnet-patient-portal-error.log last 20 lines:
+1|carnet-p | TypeError [ERR_UNKNOWN_FILE_EXTENSION]: Unknown file extension ".ts" for /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/index.ts
+1|carnet-p |     at Object.getFileProtocolModuleFormat [as file:] (node:internal/modules/esm/get_format:189:9)
+1|carnet-p |     at defaultGetFormat (node:internal/modules/esm/get_format:232:36)
+1|carnet-p |     at defaultLoad (node:internal/modules/esm/load:145:22)
+1|carnet-p |     at async ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:543:45)
+1|carnet-p |     at async ModuleJob._link (node:internal/modules/esm/module_job:148:19) {
+1|carnet-p |   code: 'ERR_UNKNOWN_FILE_EXTENSION'
+1|carnet-p | }
