@@ -1,0 +1,75 @@
+[root@mail carnet-standalone]# sed -i "s|import invitationRoutes from './routes/invitation';|import invitationRoutes from './routes/invitation.js';|" server/index.ts
+[root@mail carnet-standalone]# sed -i "s|from '../services/emailService'|from '../services/emailService.js'|" server/routes/invitation.ts
+[root@mail carnet-standalone]# grep "invitationRoutes" server/index.ts
+grep "emailService" server/routes/invitation.ts
+import invitationRoutes from './routes/invitation.js';
+app.use('/api/invitation', invitationRoutes);
+import { sendCarnetInvitation } from '../services/emailService.js';
+[root@mail carnet-standalone]# cat > ecosystem.config.cjs << 'EOF'
+module.exports = {
+  apps: [{
+    name: 'carnet-patient-portal',
+    script: './node_modules/.bin/tsx',
+    args: 'server/index.ts',
+    cwd: '/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone',
+    instances: 1,
+    exec_mode: 'fork',
+    autorestart: true,
+    watch: false,
+    max_memory_restart: '1G',
+    env: {
+      DATABASE_URL: 'postgresql://neondb_owner:npg_vMTokQ6w9fey@ep-square-moon-aexpu2wb.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require',
+      JWT_SECRET: 'df383b0329a051979e796b4a89bf792d72d22337eb477661e8f2e84e80b147be',
+      SESSION_SECRET: '4bbb25376ec9af4f3634bdbdc01741d3383ed0fee3f966dd8048d01c1010a488',
+      NODE_ENV: 'production',
+      PORT: '5001',
+      SMTP_HOST: 'mail.navimedi.org',
+      SMTP_PORT: '587',
+      SMTP_SECURE: 'false',
+      SMTP_USER: 'noreply@navimedi.org'
+    }
+  }]
+};
+EOF
+[root@mail carnet-standalone]# export $(cat .env | grep SMTP_PASS)
+pm2 restart carnet-patient-portal --update-env
+[PM2] Applying action restartProcessId on app [carnet-patient-portal](ids: [ 3 ])
+[PM2] [carnet-patient-portal](3) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 3  │ carnet-patient-po… │ fork     │ 178  │ online    │ 0%       │ 17.3mb   │
+│ 0  │ navimed            │ fork     │ 135  │ online    │ 0%       │ 75.0mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@mail carnet-standalone]# sleep 3 && pm2 logs carnet-patient-portal --lines 20 --nostream
+[TAILING] Tailing last 20 lines for [carnet-patient-portal] process (change the value with --lines option)
+/root/.pm2/logs/carnet-patient-portal-error-3.log last 20 lines:
+3|carnet-p | designed for a production environment, as it will leak
+3|carnet-p | memory, and will not scale past a single process.
+3|carnet-p | Warning: connect.session() MemoryStore is not
+3|carnet-p | designed for a production environment, as it will leak
+3|carnet-p | memory, and will not scale past a single process.
+3|carnet-p | Warning: connect.session() MemoryStore is not
+3|carnet-p | designed for a production environment, as it will leak
+3|carnet-p | memory, and will not scale past a single process.
+3|carnet-p | Error sending invitation: Error: connect ECONNREFUSED 127.0.0.1:587
+3|carnet-p |     at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16) {
+3|carnet-p |   errno: -111,
+3|carnet-p |   code: 'ESOCKET',
+3|carnet-p |   syscall: 'connect',
+3|carnet-p |   address: '127.0.0.1',
+3|carnet-p |   port: 587,
+3|carnet-p |   command: 'CONN'
+3|carnet-p | }
+3|carnet-p | Warning: connect.session() MemoryStore is not
+3|carnet-p | designed for a production environment, as it will leak
+3|carnet-p | memory, and will not scale past a single process.
+
+/root/.pm2/logs/carnet-patient-portal-out-3.log last 20 lines:
+3|carnet-p | 🚀 CARNET server running on port 5001
+3|carnet-p | 🚀 CARNET server running on port 5001
+3|carnet-p | 🚀 CARNET server running on port 5001
+3|carnet-p | 🚀 CARNET server running on port 5001
+3|carnet-p | 🚀 CARNET server running on port 5001
+
+[root@mail carnet-standalone]# 
