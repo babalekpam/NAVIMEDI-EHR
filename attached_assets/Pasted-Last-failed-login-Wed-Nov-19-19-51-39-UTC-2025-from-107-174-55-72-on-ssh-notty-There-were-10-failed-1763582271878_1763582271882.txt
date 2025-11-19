@@ -1,0 +1,44 @@
+Last failed login: Wed Nov 19 19:51:39 UTC 2025 from 107.174.55.72 on ssh:notty
+There were 10 failed login attempts since the last successful login.
+Last login: Wed Nov 19 19:35:58 2025 from 127.0.0.1
+
+This server is powered by Plesk.
+
+Run the 'plesk login' command and log in by browsing either of the links received in the output.
+Use the 'plesk' command to manage the server. Run 'plesk help' for more info.
+
+[root@mail ~]# echo 'aW1wb3J0IG5vZGVtYWlsZXIgZnJvbSAnbm9kZW1haWxlcic7Cgpjb25zdCB0cmFuc3BvcnRlciA9IG5vZGVtYWlsZXIuY3JlYXRlVHJhbnNwb3J0KHsKICBob3N0OiBwcm9jZXNzLmVudi5TTVRQX0hPU1QsCiAgcG9ydDogcGFyc2VJbnQocHJvY2Vzcy5lbnYuU01UUF9QT1JUIHx8ICc1ODcnKSwKICBzZWN1cmU6IHByb2Nlc3MuZW52LlNNVFBfU0VDVVJFID09PSAndHJ1ZScsCiAgYXV0aDogewogICAgdXNlcjogcHJvY2Vzcy5lbnYuU01UUF9VU0VSLAogICAgcGFzczogcHJvY2Vzcy5lbnYuU01UUF9QQVNTLAogIH0sCn0pOwoKaW50ZXJmYWNlIFBhdGllbnRJbnZpdGF0aW9uIHsKICBwYXRpZW50TmFtZTogc3RyaW5nOwogIHBhdGllbnRFbWFpbDogc3RyaW5nOwogIHRlbXBQYXNzd29yZDogc3RyaW5nOwogIHRlbmFudE5hbWU6IHN0cmluZzsKICBob3NwaXRhbE5hbWU6IHN0cmluZzsKfQoKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIHNlbmRDYXJuZXRJbnZpdGF0aW9uKGRhdGE6IFBhdGllbnRJbnZpdGF0aW9uKSB7CiAgY29uc3QgaHRtbCA9IGA8aHRtbD48Ym9keT48aDE+V2VsY29tZSB0byBDQVJORVQgUGF0aWVudCBQb3J0YWw8L2gxPjxwPkhlbGxvICR7ZGF0YS5wYXRpZW50TmFtZX0sPC9wPjxwPlBvcnRhbDogPGEgaHJlZj0iaHR0cHM6Ly9uYXZpbWVkaS5vcmcvY2FybmV0LyI+aHR0cHM6Ly9uYXZpbWVkaS5vcmcvY2FybmV0LzwvYT48L3A+PHA+TG9naW46ICR7ZGF0YS5wYXRpZW50RW1haWx9IC8gJHtkYXRhLnRlbXBQYXNzd29yZH08L3A+PHA+SG9zcGl0YWw6ICR7ZGF0YS50ZW5hbnROYW1lfTwvcD48L2JvZHk+PC9odG1sPmA7CiAgCiAgYXdhaXQgdHJhbnNwb3J0ZXIuc2VuZE1haWwoewogICAgZnJvbTogcHJvY2Vzcy5lbnYuU01UUF9VU0VSLAogICAgdG86IGRhdGEucGF0aWVudEVtYWlsLAogICAgc3ViamVjdDogJ1dlbGNvbWUgdG8gQ0FSTkVUIFBhdGllbnQgUG9ydGFsJywKICAgIGh0bWwsCiAgfSk7Cn0K' | base64 -d > server/services/emailService.ts
+[root@mail ~]# cat server/services/emailService.ts
+import nodemailer from 'nodemailer';
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: process.env.SMTP_SECURE === 'true',
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+interface PatientInvitation {
+  patientName: string;
+  patientEmail: string;
+  tempPassword: string;
+  tenantName: string;
+  hospitalName: string;
+}
+
+export async function sendCarnetInvitation(data: PatientInvitation) {
+  const html = `<html><body><h1>Welcome to CARNET Patient Portal</h1><p>Hello ${data.patientName},</p><p>Portal: <a href="https://navimedi.org/carnet/">https://navimedi.org/carnet/</a></p><p>Login: ${data.patientEmail} / ${data.tempPassword}</p><p>Hospital: ${data.tenantName}</p></body></html>`;
+  
+  await transporter.sendMail({
+    from: process.env.SMTP_USER,
+    to: data.patientEmail,
+    subject: 'Welcome to CARNET Patient Portal',
+    html,
+  });
+}
+[root@mail ~]# ls -lh server/services/emailService.ts
+-rw-r--r--. 1 root root 978 Nov 19 19:52 server/services/emailService.ts
+[root@mail ~]# 
