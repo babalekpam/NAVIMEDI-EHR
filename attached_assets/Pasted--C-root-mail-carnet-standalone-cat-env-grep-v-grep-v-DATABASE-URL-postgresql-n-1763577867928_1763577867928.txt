@@ -1,0 +1,82 @@
+^C
+[root@mail carnet-standalone]# cat .env | grep -v "^#" | grep -v "^$"
+DATABASE_URL=postgresql://neondb_owner:npg_vMTokQ6w9fey@ep-square-moon-aexpu2wb.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require
+JWT_SECRET=df383b0329a051979e796b4a89bf792d72d22337eb477661e8f2e84e80b147be
+SESSION_SECRET=4bbb25376ec9af4f3634bdbdc01741d3383ed0fee3f966dd8048d01c1010a488
+NODE_ENV=production
+PORT=5001
+[root@mail carnet-standalone]# cat > ecosystem.config.cjs << 'EOF'
+module.exports = {
+  apps: [{
+    name: 'carnet-patient-portal',
+    script: './node_modules/.bin/tsx',
+    args: 'server/index.ts',
+    cwd: '/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone',
+    instances: 1,
+    exec_mode: 'fork',
+    autorestart: true,
+    watch: false,
+    max_memory_restart: '1G',
+    env: {
+      DATABASE_URL: 'postgresql://neondb_owner:npg_vMTokQ6w9fey@ep-square-moon-aexpu2wb.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require',
+      JWT_SECRET: 'df383b0329a051979e796b4a89bf792d72d22337eb477661e8f2e84e80b147be',
+      SESSION_SECRET: '4bbb25376ec9af4f3634bdbdc01741d3383ed0fee3f966dd8048d01c1010a488',
+      NODE_ENV: 'production',
+      PORT: '5001'
+    }
+  }]
+};
+EOF
+[root@mail carnet-standalone]# pm2 start ecosystem.config.cjs
+[PM2] Applying action restartProcessId on app [carnet-patient-portal](ids: [ 3 ])
+[PM2] [carnet-patient-portal](3) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 3  │ carnet-patient-po… │ fork     │ 159  │ online    │ 0%       │ 18.3mb   │
+│ 0  │ navimed            │ fork     │ 135  │ online    │ 0%       │ 77.5mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@mail carnet-standalone]# pm2 status
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 3  │ carnet-patient-po… │ fork     │ 159  │ online    │ 0%       │ 62.6mb   │
+│ 0  │ navimed            │ fork     │ 135  │ online    │ 0%       │ 77.6mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@mail carnet-standalone]# pm2 logs carnet-patient-portal --lines 30
+[TAILING] Tailing last 30 lines for [carnet-patient-portal] process (change the value with --lines option)
+/root/.pm2/logs/carnet-patient-portal-error-3.log last 30 lines:
+3|carnet-p |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+3|carnet-p | 
+3|carnet-p | Node.js v20.19.5
+3|carnet-p | /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6
+3|carnet-p |   throw new Error('DATABASE_URL environment variable is not set');
+3|carnet-p |         ^
+3|carnet-p | 
+3|carnet-p | 
+3|carnet-p | Error: DATABASE_URL environment variable is not set
+3|carnet-p |     at <anonymous> (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6:9)
+3|carnet-p |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+3|carnet-p |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+3|carnet-p |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+3|carnet-p | 
+3|carnet-p | Node.js v20.19.5
+3|carnet-p | /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6
+3|carnet-p |   throw new Error('DATABASE_URL environment variable is not set');
+3|carnet-p |         ^
+3|carnet-p | 
+3|carnet-p | 
+3|carnet-p | Error: DATABASE_URL environment variable is not set
+3|carnet-p |     at <anonymous> (/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/db.ts:6:9)
+3|carnet-p |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+3|carnet-p |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+3|carnet-p |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+3|carnet-p | 
+3|carnet-p | Node.js v20.19.5
+3|carnet-p | Warning: connect.session() MemoryStore is not
+3|carnet-p | designed for a production environment, as it will leak
+3|carnet-p | memory, and will not scale past a single process.
+
+/root/.pm2/logs/carnet-patient-portal-out-3.log last 30 lines:
+3|carnet-p | 🚀 CARNET server running on port 5001
+
