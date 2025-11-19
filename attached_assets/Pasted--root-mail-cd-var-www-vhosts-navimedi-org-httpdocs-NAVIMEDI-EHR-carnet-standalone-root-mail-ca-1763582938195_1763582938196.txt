@@ -1,0 +1,52 @@
+[root@mail ~]# cd /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone
+[root@mail carnet-standalone]# pwd
+cat ecosystem.config.cjs | head -20
+/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone
+module.exports = {
+  apps: [{
+    name: 'carnet-patient-portal',
+    script: './node_modules/.bin/tsx',
+    args: 'server/index.ts',
+    cwd: '/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone',
+    instances: 1,
+    exec_mode: 'fork',
+    autorestart: true,
+    watch: false,
+    max_memory_restart: '1G',
+    env: {
+      DATABASE_URL: 'postgresql://neondb_owner:npg_vMTokQ6w9fey@ep-square-moon-aexpu2wb.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require',
+      JWT_SECRET: 'df383b0329a051979e796b4a89bf792d72d22337eb477661e8f2e84e80b147be',
+      SESSION_SECRET: '4bbb25376ec9af4f3634bdbdc01741d3383ed0fee3f966dd8048d01c1010a488',
+      NODE_ENV: 'production',
+      PORT: '5001'
+    }
+  }]
+};
+[root@mail carnet-standalone]# echo 'aW1wb3J0IHsgUm91dGVyIH0gZnJvbSAnZXhwcmVzcyc7CmltcG9ydCB7IHNlbmRDYXJuZXRJbnZpdGF0aW9uIH0gZnJvbSAnLi4vc2VydmljZXMvZW1haWxTZXJ2aWNlJzsKCmNvbnN0IHJvdXRlciA9IFJvdXRlcigpOwoKcm91dGVyLnBvc3QoJy9zZW5kLWludml0YXRpb24nLCBhc3luYyAocmVxLCByZXMpID0+IHsKICB0cnkgewogICAgY29uc3QgeyBwYXRpZW50TmFtZSwgcGF0aWVudEVtYWlsLCB0ZW1wUGFzc3dvcmQsIHRlbmFudE5hbWUsIGhvc3BpdGFsTmFtZSB9ID0gcmVxLmJvZHk7CiAgICAKICAgIGF3YWl0IHNlbmRDYXJuZXRJbnZpdGF0aW9uKHsKICAgICAgcGF0aWVudE5hbWUsCiAgICAgIHBhdGllbnRFbWFpbCwKICAgICAgdGVtcFBhc3N3b3JkLAogICAgICB0ZW5hbnROYW1lLAogICAgICBob3NwaXRhbE5hbWUsCiAgICB9KTsKICAgIAogICAgcmVzLmpzb24oeyBzdWNjZXNzOiB0cnVlLCBtZXNzYWdlOiAnSW52aXRhdGlvbiBlbWFpbCBzZW50IHN1Y2Nlc3NmdWxseSEnIH0pOwogIH0gY2F0Y2ggKGVycm9yKSB7CiAgICBjb25zb2xlLmVycm9yKCdFcnJvciBzZW5kaW5nIGludml0YXRpb246JywgZXJyb3IpOwogICAgcmVzLnN0YXR1cyg1MDApLmpzb24oeyBzdWNjZXNzOiBmYWxzZSwgZXJyb3I6ICdGYWlsZWQgdG8gc2VuZCBpbnZpdGF0aW9uIGVtYWlsJyB9KTsKICB9Cn0pOwoKZXhwb3J0IGRlZmF1bHQgcm91dGVyOwo=' | base64 -d > server/routes/invitation.ts
+[root@mail carnet-standalone]# cat server/routes/invitation.ts
+import { Router } from 'express';
+import { sendCarnetInvitation } from '../services/emailService';
+
+const router = Router();
+
+router.post('/send-invitation', async (req, res) => {
+  try {
+    const { patientName, patientEmail, tempPassword, tenantName, hospitalName } = req.body;
+    
+    await sendCarnetInvitation({
+      patientName,
+      patientEmail,
+      tempPassword,
+      tenantName,
+      hospitalName,
+    });
+    
+    res.json({ success: true, message: 'Invitation email sent successfully!' });
+  } catch (error) {
+    console.error('Error sending invitation:', error);
+    res.status(500).json({ success: false, error: 'Failed to send invitation email' });
+  }
+});
+
+export default router;
+[root@mail carnet-standalone]# 
