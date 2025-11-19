@@ -1,0 +1,118 @@
+root@mail carnet-standalone]# cat .env | grep SMTP_PASS | od -c
+0000000   S   M   T   P   _   P   A   S   S   =   **********************
+0000026
+[root@mail carnet-standalone]# plesk bin mail --list
+Mail name       admin@navimedi.org
+Mail name       no-reply@navimedi.org
+Mail name       support@navimedi.org
+Mail name       sales@navimedi.org
+Mail name       billing@navimedi.org
+Mail name       info@navimedi.org
+[root@mail carnet-standalone]# plesk bin mail --info noreply@navimedi.org
+An error occured during getting mailname information: Mail account 'noreply@navimedi.org' does not exist
+
+
+exit status 1
+[root@mail carnet-standalone]# # Only run this if the account doesn't exist
+# plesk bin mail --create noreply@navimedi.org -passwd 'YOUR_PASSWORD'
+[root@mail carnet-standalone]# curl -v --url 'smtps://mail.navimedi.org:465' \
+  --mail-from 'noreply@navimedi.org' \
+  --mail-rcpt 'test@example.com' \
+  --user 'noreply@navimedi.org:YOUR_SMTP_PASSWORD' \
+  -T - <<EOF
+From: noreply@navimedi.org
+To: test@example.com
+Subject: Test
+
+This is a test email.
+EOF
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 74.208.166.77:465...
+* Connected to mail.navimedi.org (74.208.166.77) port 465 (#0)
+*  CAfile: /etc/pki/tls/certs/ca-bundle.crt
+* TLSv1.0 (OUT), TLS header, Certificate Status (22):
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [512 bytes data]
+* TLSv1.2 (IN), TLS header, Certificate Status (22):
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+{ [122 bytes data]
+* TLSv1.2 (IN), TLS header, Finished (20):
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS change cipher, Change cipher spec (1):
+{ [1 bytes data]
+* TLSv1.2 (IN), TLS header, Unknown (23):
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+{ [10 bytes data]
+* TLSv1.2 (IN), TLS header, Unknown (23):
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+{ [4990 bytes data]
+* TLSv1.2 (IN), TLS header, Unknown (23):
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+{ [264 bytes data]
+* TLSv1.2 (IN), TLS header, Unknown (23):
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+{ [52 bytes data]
+* TLSv1.2 (OUT), TLS header, Finished (20):
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+} [1 bytes data]
+* TLSv1.2 (OUT), TLS header, Unknown (23):
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Finished (20):
+} [52 bytes data]
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384
+* Server certificate:
+*  subject: CN=*.navimedi.org
+*  start date: Nov 15 00:00:00 2025 GMT
+*  expire date: Oct  7 23:59:59 2026 GMT
+*  subjectAltName: host "mail.navimedi.org" matched cert's "*.navimedi.org"
+*  issuer: C=GB; O=Sectigo Limited; CN=Sectigo Public Server Authentication CA DV R36
+*  SSL certificate verify ok.
+* TLSv1.2 (IN), TLS header, Unknown (23):
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+{ [265 bytes data]
+* TLSv1.2 (IN), TLS header, Unknown (23):
+{ [5 bytes data]
+< 220 mail.navimedi.org ESMTP Postfix
+* TLSv1.2 (OUT), TLS header, Unknown (23):
+} [5 bytes data]
+> EHLO mail
+* TLSv1.2 (IN), TLS header, Unknown (23):
+{ [5 bytes data]
+< 250-mail.navimedi.org
+< 250-PIPELINING
+< 250-SIZE 10240000
+< 250-ETRN
+< 250-AUTH DIGEST-MD5 CRAM-MD5 PLAIN LOGIN
+< 250-ENHANCEDSTATUSCODES
+< 250-8BITMIME
+< 250-DSN
+< 250 CHUNKING
+* TLSv1.2 (OUT), TLS header, Unknown (23):
+} [5 bytes data]
+> AUTH DIGEST-MD5
+* TLSv1.2 (IN), TLS header, Unknown (23):
+{ [5 bytes data]
+< 334 bm9uY2U9IitxaVFkUnNwVXBqZ0hybUFlVElhSkhrQU93M3FzU2Jsc3VjWkpvRGFnT1U9IixyZWFsbT0ibWFpbC5uYXZpbWVkaS5vcmciLHFvcD0iYXV0aCIsY2hhcnNldD11dGYtOCxhbGdvcml0aG09bWQ1LXNlc3M=
+* TLSv1.2 (OUT), TLS header, Unknown (23):
+} [5 bytes data]
+> dXNlcm5hbWU9Im5vcmVwbHlAbmF2aW1lZGkub3JnIixyZWFsbT0ibWFpbC5uYXZpbWVkaS5vcmciLG5vbmNlPSIrcWlRZFJzcFVwamdIcm1BZVRJYUpIa0FPdzNxc1NibHN1Y1pKb0RhZ09VPSIsY25vbmNlPSIxNzA2OTgzNjEzYjU4OTkzMDFjZGI1ZTJjZTAzODA3MCIsbmM9IjAwMDAwMDAxIixkaWdlc3QtdXJpPSJzbXRwL21haWwubmF2aW1lZGkub3JnIixyZXNwb25zZT01N2UyMGYwMDMyYTExOGVjZTkyMWU4ZWJjOWFhOGRkMyxxb3A9YXV0aA==
+* TLSv1.2 (IN), TLS header, Unknown (23):
+{ [5 bytes data]
+< 535 5.7.8 Error: authentication failed: authentication failure
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+* Closing connection 0
+* TLSv1.2 (OUT), TLS header, Unknown (23):
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS alert, close notify (256):
+} [2 bytes data]
+curl: (67) Login denied
+[root@mail carnet-standalone]# 
