@@ -1,0 +1,53 @@
+/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone
+[root@mail carnet-standalone]# head -50 shared/schema.ts
+import { pgTable, serial, varchar, text, timestamp, integer, boolean, jsonb } from 'drizzle-orm/pg-core';
+import { createInsertSchema } from 'drizzle-zod';
+import { z } from 'zod';
+
+export const tenants = pgTable('carnet_tenants', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  type: varchar('type', { length: 50 }).notNull(),
+  status: varchar('status', { length: 50 }).default('active'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const users = pgTable('carnet_users', {
+  id: serial('id').primaryKey(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  password: varchar('password', { length: 255 }).notNull(),
+  firstName: varchar('first_name', { length: 100 }),
+  lastName: varchar('last_name', { length: 100 }),
+  role: varchar('role', { length: 50 }).notNull(),
+  tenantId: integer('tenant_id').references(() => tenants.id),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const patients = pgTable('carnet_patients', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id),
+  tenantId: integer('tenant_id').references(() => tenants.id),
+  dateOfBirth: timestamp('date_of_birth'),
+  gender: varchar('gender', { length: 20 }),
+  phone: varchar('phone', { length: 50 }),
+  address: text('address'),
+  emergencyContact: jsonb('emergency_contact'),
+  medicalHistory: jsonb('medical_history'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const appointments = pgTable('carnet_appointments', {
+  id: serial('id').primaryKey(),
+  patientId: integer('patient_id').references(() => patients.id),
+  tenantId: integer('tenant_id').references(() => tenants.id),
+  providerId: integer('provider_id').references(() => users.id),
+  appointmentDate: timestamp('appointment_date').notNull(),
+  appointmentType: varchar('appointment_type', { length: 100 }),
+  status: varchar('status', { length: 50 }).default('scheduled'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const prescriptions = pgTable('carnet_prescriptions', {
+  id: serial('id').primaryKey(),
+[root@mail carnet-standalone]# 
