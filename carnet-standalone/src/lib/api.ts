@@ -1,6 +1,6 @@
 import { getToken, clearToken } from './auth';
 
-const BASE_URL = 'https://navimedi.org/api';
+const BASE_URL = '/api';
 
 interface LoginCredentials {
   email: string;
