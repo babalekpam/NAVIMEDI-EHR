@@ -1,0 +1,104 @@
+[root@mail carnet-standalone]# pm2 restart carnet-patient-portal
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [carnet-patient-portal](ids: [ 3 ])
+[PM2] [carnet-patient-portal](3) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 3  │ carnet-patient-po… │ fork     │ 175  │ online    │ 0%       │ 13.1mb   │
+│ 0  │ navimed            │ fork     │ 135  │ online    │ 0%       │ 79.4mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@mail carnet-standalone]# pm2 restart carnet-patient-portal
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [carnet-patient-portal](ids: [ 3 ])
+[PM2] [carnet-patient-portal](3) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 3  │ carnet-patient-po… │ fork     │ 176  │ online    │ 0%       │ 15.3mb   │
+│ 0  │ navimed            │ fork     │ 135  │ online    │ 0%       │ 79.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[root@mail carnet-standalone]# pm2 logs carnet-patient-portal --lines 15
+[TAILING] Tailing last 15 lines for [carnet-patient-portal] process (change the value with --lines option)
+/root/.pm2/logs/carnet-patient-portal-error-3.log last 15 lines:
+3|carnet-p |     at async resolve (file:///var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/node_modules/tsx/dist/esm/index.mjs?1763583197971:2:5355)
+3|carnet-p |     at async nextResolve (node:internal/modules/esm/hooks:864:22)
+3|carnet-p |     at async Hooks.resolve (node:internal/modules/esm/hooks:306:24)
+3|carnet-p |     at async handleMessage (node:internal/modules/esm/worker:196:18) {
+3|carnet-p |   code: 'ERR_MODULE_NOT_FOUND',
+3|carnet-p |   url: 'file:///var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/services/emailService'
+3|carnet-p | }
+3|carnet-p | 
+3|carnet-p | Node.js v20.19.5
+3|carnet-p | Warning: connect.session() MemoryStore is not
+3|carnet-p | designed for a production environment, as it will leak
+3|carnet-p | memory, and will not scale past a single process.
+3|carnet-p | Warning: connect.session() MemoryStore is not
+3|carnet-p | designed for a production environment, as it will leak
+3|carnet-p | memory, and will not scale past a single process.
+
+/root/.pm2/logs/carnet-patient-portal-out-3.log last 15 lines:
+3|carnet-p | 🚀 CARNET server running on port 5001
+3|carnet-p | 🚀 CARNET server running on port 5001
+3|carnet-p | 🚀 CARNET server running on port 5001
+
+^C
+[root@mail carnet-standalone]# curl -X POST https://navimedi.org/api/carnet/invitation/send-invitation \
+  -H "Content-Type: application/json" \
+  -d '{
+    "patientName": "Test Patient",
+    "patientEmail": "test@example.com",
+    "tempPassword": "TestPass123",
+    "tenantName": "SAINT PAUL",
+    "hospitalName": "SAINT PAUL Hospital"
+  }'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /api/invitation/send-invitation</pre>
+</body>
+</html>
+[root@mail carnet-standalone]# pm2 logs carnet-patient-portal --lines 30 --nostream
+[TAILING] Tailing last 30 lines for [carnet-patient-portal] process (change the value with --lines option)
+/root/.pm2/logs/carnet-patient-portal-error-3.log last 30 lines:
+3|carnet-p |   url: 'file:///var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/services/emailService'
+3|carnet-p | }
+3|carnet-p | 
+3|carnet-p | Node.js v20.19.5
+3|carnet-p | 
+3|carnet-p | node:internal/modules/run_main:123
+3|carnet-p |     triggerUncaughtException(
+3|carnet-p |     ^
+3|carnet-p | Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/services/emailService' imported from /var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/routes/invitation.ts
+3|carnet-p |     at finalizeResolution (node:internal/modules/esm/resolve:283:11)
+3|carnet-p |     at moduleResolve (node:internal/modules/esm/resolve:952:10)
+3|carnet-p |     at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+3|carnet-p |     at nextResolve (node:internal/modules/esm/hooks:864:28)
+3|carnet-p |     at resolveBase (file:///var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/node_modules/tsx/dist/esm/index.mjs?1763583197971:2:3744)
+3|carnet-p |     at async resolveDirectory (file:///var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/node_modules/tsx/dist/esm/index.mjs?1763583197971:2:4237)
+3|carnet-p |     at async resolve (file:///var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/node_modules/tsx/dist/esm/index.mjs?1763583197971:2:5355)
+3|carnet-p |     at async nextResolve (node:internal/modules/esm/hooks:864:22)
+3|carnet-p |     at async Hooks.resolve (node:internal/modules/esm/hooks:306:24)
+3|carnet-p |     at async handleMessage (node:internal/modules/esm/worker:196:18) {
+3|carnet-p |   code: 'ERR_MODULE_NOT_FOUND',
+3|carnet-p |   url: 'file:///var/www/vhosts/navimedi.org/httpdocs/NAVIMEDI-EHR/carnet-standalone/server/services/emailService'
+3|carnet-p | }
+3|carnet-p | 
+3|carnet-p | Node.js v20.19.5
+3|carnet-p | Warning: connect.session() MemoryStore is not
+3|carnet-p | designed for a production environment, as it will leak
+3|carnet-p | memory, and will not scale past a single process.
+3|carnet-p | Warning: connect.session() MemoryStore is not
+3|carnet-p | designed for a production environment, as it will leak
+3|carnet-p | memory, and will not scale past a single process.
+
+/root/.pm2/logs/carnet-patient-portal-out-3.log last 30 lines:
+3|carnet-p | 🚀 CARNET server running on port 5001
+3|carnet-p | 🚀 CARNET server running on port 5001
+3|carnet-p | 🚀 CARNET server running on port 5001
+
+[root@mail carnet-standalone]# 
