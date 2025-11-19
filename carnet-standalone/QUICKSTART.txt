@@ -1,0 +1,78 @@
+═══════════════════════════════════════════════════
+  CARNET - Patient Health Portal
+  STANDALONE PROJECT - QUICK START
+═══════════════════════════════════════════════════
+
+📁 DOWNLOAD THIS ENTIRE FOLDER:
+   carnet-standalone/
+
+📦 INSTALL:
+   npm install
+
+▶️ RUN:
+   npm run dev
+
+🌐 OPEN:
+   http://localhost:3000
+
+🔑 TEST LOGIN:
+   Email: sarah.johnson@email.com
+   Password: password123
+   Hospital: SAINT PAUL
+
+═══════════════════════════════════════════════════
+
+✅ WHAT'S INCLUDED:
+
+- ✅ Complete React app
+- ✅ All patient portal pages
+- ✅ CARNET logo
+- ✅ Mobile-first design
+- ✅ TypeScript
+- ✅ Tailwind CSS
+- ✅ API integration
+
+═══════════════════════════════════════════════════
+
+🚀 TO DEPLOY:
+
+1. npm run build
+2. Upload dist/ folder to your server
+3. Done!
+
+═══════════════════════════════════════════════════
+
+🔧 CHANGE API URL:
+
+Edit: src/lib/api.ts
+
+Change:
+const API_BASE = 'https://navimedi.org/api';
+
+To:
+const API_BASE = 'https://your-server.com/api';
+
+═══════════════════════════════════════════════════
+
+🎨 CHANGE LOGO:
+
+Replace: public/carnet-logo.png
+
+With your own logo file
+
+═══════════════════════════════════════════════════
+
+📱 WORKS ON:
+
+✅ Desktop browsers
+✅ Mobile browsers  
+✅ Tablets
+✅ Can be installed as PWA on phones
+
+═══════════════════════════════════════════════════
+
+ℹ️ SUPPORT:
+
+See README.md for full documentation
+
+═══════════════════════════════════════════════════
