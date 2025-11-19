@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Route, Switch, Redirect } from 'wouter';
 import { isAuthenticated, clearToken } from './lib/auth';
 import { api } from './lib/api';
+import { PreferencesProvider } from './contexts/PreferencesContext';
+import { InstallPrompt } from './components/InstallPrompt';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
@@ -19,7 +21,7 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   return <Component />;
 }
 
-export default function App() {
+function AppContent() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
@@ -30,7 +32,6 @@ export default function App() {
         } catch (error) {
           console.error('Session validation failed:', error);
           clearToken();
-          alert('Your session has expired. Please log in again.');
         }
       }
       setIsCheckingAuth(false);
@@ -51,32 +52,43 @@ export default function App() {
   }
 
   return (
-    <Switch>
-      <Route path="/" component={Login} />
-      <Route path="/dashboard">
-        {() => <ProtectedRoute component={Dashboard} />}
-      </Route>
-      <Route path="/profile">
-        {() => <ProtectedRoute component={Profile} />}
-      </Route>
-      <Route path="/appointments">
-        {() => <ProtectedRoute component={Appointments} />}
-      </Route>
-      <Route path="/prescriptions">
-        {() => <ProtectedRoute component={Prescriptions} />}
-      </Route>
-      <Route path="/lab-results">
-        {() => <ProtectedRoute component={LabResults} />}
-      </Route>
-      <Route path="/messages">
-        {() => <ProtectedRoute component={Messages} />}
-      </Route>
-      <Route path="/bills">
-        {() => <ProtectedRoute component={Bills} />}
-      </Route>
-      <Route>
-        {() => <Redirect to="/" />}
-      </Route>
-    </Switch>
+    <>
+      <Switch>
+        <Route path="/" component={Login} />
+        <Route path="/dashboard">
+          {() => <ProtectedRoute component={Dashboard} />}
+        </Route>
+        <Route path="/profile">
+          {() => <ProtectedRoute component={Profile} />}
+        </Route>
+        <Route path="/appointments">
+          {() => <ProtectedRoute component={Appointments} />}
+        </Route>
+        <Route path="/prescriptions">
+          {() => <ProtectedRoute component={Prescriptions} />}
+        </Route>
+        <Route path="/lab-results">
+          {() => <ProtectedRoute component={LabResults} />}
+        </Route>
+        <Route path="/messages">
+          {() => <ProtectedRoute component={Messages} />}
+        </Route>
+        <Route path="/bills">
+          {() => <ProtectedRoute component={Bills} />}
+        </Route>
+        <Route>
+          {() => <Redirect to="/" />}
+        </Route>
+      </Switch>
+      <InstallPrompt />
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <PreferencesProvider>
+      <AppContent />
+    </PreferencesProvider>
   );
 }

@@ -1,0 +1,49 @@
+{
+  "name": "CARNET - Patient Health Portal",
+  "short_name": "CARNET",
+  "description": "Access your medical records, appointments, prescriptions, and lab results securely",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/carnet-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/carnet-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/dashboard-preview.html",
+      "sizes": "540x720",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["health", "medical", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/dashboard",
+      "description": "View your health dashboard"
+    },
+    {
+      "name": "Appointments",
+      "url": "/appointments",
+      "description": "Manage your appointments"
+    },
+    {
+      "name": "Messages",
+      "url": "/messages",
+      "description": "Check medical messages"
+    }
+  ]
+}
