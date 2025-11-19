@@ -1,0 +1,105 @@
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_appointments" ADD CONSTRAINT "carnet_appointments_patient_id_carnet_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."carnet_patients"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_appointments" ADD CONSTRAINT "carnet_appointments_tenant_id_carnet_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."carnet_tenants"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_appointments" ADD CONSTRAINT "carnet_appointments_provider_id_carnet_users_id_fk" FOREIGN KEY ("provider_id") REFERENCES "public"."carnet_users"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_bills" ADD CONSTRAINT "carnet_bills_patient_id_carnet_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."carnet_patients"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_bills" ADD CONSTRAINT "carnet_bills_tenant_id_carnet_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."carnet_tenants"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_lab_results" ADD CONSTRAINT "carnet_lab_results_patient_id_carnet_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."carnet_patients"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_lab_results" ADD CONSTRAINT "carnet_lab_results_tenant_id_carnet_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."carnet_tenants"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_lab_results" ADD CONSTRAINT "carnet_lab_results_ordered_by_carnet_users_id_fk" FOREIGN KEY ("ordered_by") REFERENCES "public"."carnet_users"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_medical_communications" ADD CONSTRAINT "carnet_medical_communications_tenant_id_carnet_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."carnet_tenants"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_medical_communications" ADD CONSTRAINT "carnet_medical_communications_sender_id_carnet_users_id_fk" FOREIGN KEY ("sender_id") REFERENCES "public"."carnet_users"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_medical_communications" ADD CONSTRAINT "carnet_medical_communications_recipient_id_carnet_users_id_fk" FOREIGN KEY ("recipient_id") REFERENCES "public"."carnet_users"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_patients" ADD CONSTRAINT "carnet_patients_user_id_carnet_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."carnet_users"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_patients" ADD CONSTRAINT "carnet_patients_tenant_id_carnet_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."carnet_tenants"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_prescriptions" ADD CONSTRAINT "carnet_prescriptions_patient_id_carnet_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."carnet_patients"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_prescriptions" ADD CONSTRAINT "carnet_prescriptions_tenant_id_carnet_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."carnet_tenants"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_prescriptions" ADD CONSTRAINT "carnet_prescriptions_provider_id_carnet_users_id_fk" FOREIGN KEY ("provider_id") REFERENCES "public"."carnet_users"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "carnet_users" ADD CONSTRAINT "carnet_users_tenant_id_carnet_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."carnet_tenants"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+[root@mail carnet-standalone]# psql "postgresql://neondb_owner:npg_vMTokQ6w9fey@ep-square-moon-aexpu2wb.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require" -f drizzle/0000_gorgeous_imperial_guard.sql
+psql: error: ERROR:  Endpoint ID is not specified. Either please upgrade the postgres client library (libpq) for SNI support or pass the endpoint ID (first part of the domain name) as a parameter: '?options=endpoint%3D<endpoint-id>'. See more at https://neon.tech/sni
+[root@mail carnet-standalone]# 
