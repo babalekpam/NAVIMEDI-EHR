@@ -34,7 +34,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'CARNET API is running' });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 
 if (process.env.NODE_ENV === 'development') {
   ViteExpress.listen(app, PORT, () => {

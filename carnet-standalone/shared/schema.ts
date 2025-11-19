@@ -2,7 +2,7 @@ import { pgTable, serial, varchar, text, timestamp, integer, boolean, jsonb } fr
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
-export const tenants = pgTable('tenants', {
+export const tenants = pgTable('carnet_tenants', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   type: varchar('type', { length: 50 }).notNull(),
@@ -10,7 +10,7 @@ export const tenants = pgTable('tenants', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const users = pgTable('users', {
+export const users = pgTable('carnet_users', {
   id: serial('id').primaryKey(),
   email: varchar('email', { length: 255 }).notNull().unique(),
   password: varchar('password', { length: 255 }).notNull(),
@@ -21,7 +21,7 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const patients = pgTable('patients', {
+export const patients = pgTable('carnet_patients', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').references(() => users.id),
   tenantId: integer('tenant_id').references(() => tenants.id),
@@ -34,7 +34,7 @@ export const patients = pgTable('patients', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const appointments = pgTable('appointments', {
+export const appointments = pgTable('carnet_appointments', {
   id: serial('id').primaryKey(),
   patientId: integer('patient_id').references(() => patients.id),
   tenantId: integer('tenant_id').references(() => tenants.id),
@@ -46,7 +46,7 @@ export const appointments = pgTable('appointments', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const prescriptions = pgTable('prescriptions', {
+export const prescriptions = pgTable('carnet_prescriptions', {
   id: serial('id').primaryKey(),
   patientId: integer('patient_id').references(() => patients.id),
   tenantId: integer('tenant_id').references(() => tenants.id),
@@ -62,7 +62,7 @@ export const prescriptions = pgTable('prescriptions', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const labResults = pgTable('lab_results', {
+export const labResults = pgTable('carnet_lab_results', {
   id: serial('id').primaryKey(),
   patientId: integer('patient_id').references(() => patients.id),
   tenantId: integer('tenant_id').references(() => tenants.id),
@@ -77,7 +77,7 @@ export const labResults = pgTable('lab_results', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const medicalCommunications = pgTable('medical_communications', {
+export const medicalCommunications = pgTable('carnet_medical_communications', {
   id: serial('id').primaryKey(),
   tenantId: integer('tenant_id').references(() => tenants.id),
   senderId: integer('sender_id').references(() => users.id),
@@ -92,7 +92,7 @@ export const medicalCommunications = pgTable('medical_communications', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const bills = pgTable('bills', {
+export const bills = pgTable('carnet_bills', {
   id: serial('id').primaryKey(),
   patientId: integer('patient_id').references(() => patients.id),
   tenantId: integer('tenant_id').references(() => tenants.id),
