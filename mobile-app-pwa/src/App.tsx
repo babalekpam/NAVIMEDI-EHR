@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Route, Switch, Redirect } from 'wouter';
-import { isAuthenticated } from './lib/auth';
+import { isAuthenticated, clearToken } from './lib/auth';
+import { api } from './lib/api';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
@@ -18,6 +20,36 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 }
 
 export default function App() {
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (isAuthenticated()) {
+        try {
+          await api.getProfile();
+        } catch (error) {
+          console.error('Session validation failed:', error);
+          clearToken();
+          alert('Your session has expired. Please log in again.');
+        }
+      }
+      setIsCheckingAuth(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  if (isCheckingAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Switch>
       <Route path="/" component={Login} />

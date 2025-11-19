@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2563eb">
+    <title>NaviMED Patient Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; }
+        .card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 16px; }
+        .btn { padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; touch-action: manipulation; min-height: 44px; }
+        .btn-primary { background: #2563eb; color: white; border: none; }
+        .btn-secondary { background: #f3f4f6; color: #1f2937; border: none; }
+        .input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .badge-success { background: #dcfce7; color: #166534; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app"></div>
+
+    <script>
+        const API_URL = 'https://navimedi.org/api';
+        let authToken = null;
+        let currentUser = null;
+        let currentView = 'login';
+
+        const auth = {
+            saveToken: (token) => {
+                authToken = token;
+                localStorage.setItem('navimed_token', token);
+            },
+            getToken: () => {
+                if (!authToken) authToken = localStorage.getItem('navimed_token');
+                return authToken;
+            },
+            clearToken: () => {
+                authToken = null;
+                localStorage.removeItem('navimed_token');
+            },
+            isAuthenticated: () => !!auth.getToken()
+        };
+
+        const api = {
+            async request(endpoint, options = {}) {
+                const headers = { 'Content-Type': 'application/json' };
+                if (auth.getToken()) headers['Authorization'] = `Bearer ${auth.getToken()}`;
+                
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    ...options,
+                    headers: { ...headers, ...options.headers }
+                });
+
+                if (response.status === 401) {
+                    auth.clearToken();
+                    currentUser = null;
+                    showView('login');
+                    alert('Your session has expired. Please log in again.');
+                    throw new Error('Session expired. Please log in again.');
+                }
+
+                if (response.status === 404) {
+                    throw new Error('This feature is not yet available. Please contact support if you need assistance.');
+                }
+
+                if (response.status === 500) {
+                    throw new Error('Server error. Please try again later or contact support.');
+                }
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || `Request failed with status ${response.status}. Please try again later.`);
+                }
+                return response.json();
+            },
+            login: (email, password, tenantId) => 
+                api.request('/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ email, password, tenantId })
+                }),
+            getProfile: () => api.request('/patient/profile'),
+            getAppointments: () => api.request('/patient/appointments'),
+            getPrescriptions: () => api.request('/patient/prescriptions'),
+            getLabResults: () => api.request('/patient/lab-results'),
+            getMessages: () => api.request('/medical-communications'),
+            getBills: () => api.request('/patient/bills')
+        };
+
+        function showView(view) {
+            currentView = view;
+            render();
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (currentView === 'login') {
+                app.innerHTML = `
+                    <div class="max-w-md mx-auto p-6 mt-20">
+                        <div class="card">
+                            <h1 class="text-3xl font-bold text-blue-600 mb-6 text-center">NaviMED</h1>
+                            <h2 class="text-xl font-semibold mb-6 text-center">Patient Portal</h2>
+                            <form onsubmit="handleLogin(event)" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Email</label>
+                                    <input type="email" id="email" class="input" value="sarah.johnson@email.com" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Password</label>
+                                    <input type="password" id="password" class="input" value="password123" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Hospital</label>
+                                    <input type="text" id="tenantId" class="input" value="SAINT PAUL" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-full">Sign In</button>
+                            </form>
+                        </div>
+                    </div>
+                `;
+            } else if (currentView === 'dashboard') {
+                app.innerHTML = `
+                    <div class="max-w-4xl mx-auto p-4">
+                        <div class="flex justify-between items-center mb-6">
+                            <h1 class="text-2xl font-bold">Welcome, ${currentUser?.firstName || 'Patient'}</h1>
+                            <button onclick="handleLogout()" class="btn btn-secondary">Logout</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="card cursor-pointer" onclick="showView('profile')">
+                                <div class="text-4xl mb-2">👤</div>
+                                <div class="font-semibold">Profile</div>
+                            </div>
+                            <div class="card cursor-pointer" onclick="showView('appointments')">
+                                <div class="text-4xl mb-2">📅</div>
+                                <div class="font-semibold">Appointments</div>
+                            </div>
+                            <div class="card cursor-pointer" onclick="showView('prescriptions')">
+                                <div class="text-4xl mb-2">💊</div>
+                                <div class="font-semibold">Prescriptions</div>
+                            </div>
+                            <div class="card cursor-pointer" onclick="showView('labResults')">
+                                <div class="text-4xl mb-2">🔬</div>
+                                <div class="font-semibold">Lab Results</div>
+                            </div>
+                            <div class="card cursor-pointer" onclick="showView('messages')">
+                                <div class="text-4xl mb-2">💬</div>
+                                <div class="font-semibold">Messages</div>
+                            </div>
+                            <div class="card cursor-pointer" onclick="showView('bills')">
+                                <div class="text-4xl mb-2">💳</div>
+                                <div class="font-semibold">Bills</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                renderDataView(currentView);
+            }
+        }
+
+        async function renderDataView(view) {
+            const app = document.getElementById('app');
+            app.innerHTML = '<div class="max-w-4xl mx-auto p-4"><div class="text-center py-10">Loading...</div></div>';
+
+            try {
+                let data, title;
+                
+                if (view === 'profile') {
+                    data = await api.getProfile();
+                    title = 'My Profile';
+                    app.innerHTML = `
+                        <div class="max-w-4xl mx-auto p-4">
+                            <button onclick="showView('dashboard')" class="btn btn-secondary mb-4">← Back</button>
+                            <h1 class="text-2xl font-bold mb-4">${title}</h1>
+                            <div class="card">
+                                <div class="space-y-3">
+                                    <div><strong>Name:</strong> ${data.firstName} ${data.lastName}</div>
+                                    <div><strong>MRN:</strong> ${data.mrn}</div>
+                                    <div><strong>Email:</strong> ${data.email}</div>
+                                    <div><strong>Phone:</strong> ${data.phone || 'N/A'}</div>
+                                    <div><strong>Date of Birth:</strong> ${data.dateOfBirth || 'N/A'}</div>
+                                    <div><strong>Blood Type:</strong> ${data.bloodType || 'N/A'}</div>
+                                    <div><strong>Allergies:</strong> ${data.allergies?.join(', ') || 'None'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (view === 'appointments') {
+                    data = await api.getAppointments();
+                    title = 'My Appointments';
+                    app.innerHTML = `
+                        <div class="max-w-4xl mx-auto p-4">
+                            <button onclick="showView('dashboard')" class="btn btn-secondary mb-4">← Back</button>
+                            <h1 class="text-2xl font-bold mb-4">${title}</h1>
+                            ${data.length === 0 ? '<p>No appointments found</p>' : 
+                                data.map(item => `
+                                    <div class="card">
+                                        <div class="font-semibold mb-2">${item.appointmentType}</div>
+                                        <div class="text-sm text-gray-600 mb-2">${new Date(item.appointmentDate).toLocaleString()}</div>
+                                        <div class="text-sm mb-2">${item.reason || 'No reason provided'}</div>
+                                        <span class="badge badge-info">${item.status}</span>
+                                    </div>
+                                `).join('')
+                            }
+                        </div>
+                    `;
+                } else if (view === 'prescriptions') {
+                    data = await api.getPrescriptions();
+                    title = 'My Prescriptions';
+                    app.innerHTML = `
+                        <div class="max-w-4xl mx-auto p-4">
+                            <button onclick="showView('dashboard')" class="btn btn-secondary mb-4">← Back</button>
+                            <h1 class="text-2xl font-bold mb-4">${title}</h1>
+                            ${data.length === 0 ? '<p>No prescriptions found</p>' : 
+                                data.map(item => `
+                                    <div class="card">
+                                        <div class="font-semibold mb-2">${item.medicationName}</div>
+                                        <div class="text-sm mb-2">Dosage: ${item.dosage}</div>
+                                        <div class="text-sm mb-2">Frequency: ${item.frequency}</div>
+                                        <div class="text-sm mb-2">Refills: ${item.refills || 0}</div>
+                                        <span class="badge badge-success">${item.status}</span>
+                                    </div>
+                                `).join('')
+                            }
+                        </div>
+                    `;
+                } else if (view === 'labResults') {
+                    data = await api.getLabResults();
+                    title = 'Lab Results';
+                    app.innerHTML = `
+                        <div class="max-w-4xl mx-auto p-4">
+                            <button onclick="showView('dashboard')" class="btn btn-secondary mb-4">← Back</button>
+                            <h1 class="text-2xl font-bold mb-4">${title}</h1>
+                            ${data.length === 0 ? '<p>No lab results found</p>' : 
+                                data.map(item => `
+                                    <div class="card">
+                                        <div class="font-semibold mb-2">${item.testName}</div>
+                                        <div class="text-sm text-gray-600 mb-2">Ordered: ${new Date(item.orderedDate).toLocaleDateString()}</div>
+                                        <span class="badge badge-success">${item.status}</span>
+                                        <span class="badge badge-warning ml-2">${item.priority}</span>
+                                    </div>
+                                `).join('')
+                            }
+                        </div>
+                    `;
+                } else if (view === 'messages') {
+                    data = await api.getMessages();
+                    title = 'Messages';
+                    app.innerHTML = `
+                        <div class="max-w-4xl mx-auto p-4">
+                            <button onclick="showView('dashboard')" class="btn btn-secondary mb-4">← Back</button>
+                            <h1 class="text-2xl font-bold mb-4">${title}</h1>
+                            ${data.length === 0 ? '<p>No messages found</p>' : 
+                                data.map(item => `
+                                    <div class="card">
+                                        <div class="font-semibold mb-2">${item.originalContent?.subject || item.type}</div>
+                                        <div class="text-sm text-gray-600 mb-2">${new Date(item.createdAt).toLocaleString()}</div>
+                                        <div class="text-sm mb-2">${item.originalContent?.message || ''}</div>
+                                        <span class="badge ${item.isRead ? 'badge-info' : 'badge-warning'}">${item.isRead ? 'Read' : 'Unread'}</span>
+                                    </div>
+                                `).join('')
+                            }
+                        </div>
+                    `;
+                } else if (view === 'bills') {
+                    data = await api.getBills();
+                    title = 'Bills & Claims';
+                    app.innerHTML = `
+                        <div class="max-w-4xl mx-auto p-4">
+                            <button onclick="showView('dashboard')" class="btn btn-secondary mb-4">← Back</button>
+                            <h1 class="text-2xl font-bold mb-4">${title}</h1>
+                            ${data.length === 0 ? '<p>No bills found</p>' : 
+                                data.map(item => `
+                                    <div class="card">
+                                        <div class="font-semibold mb-2">Claim #${item.claimNumber}</div>
+                                        <div class="text-sm mb-2">Service Date: ${new Date(item.serviceDate).toLocaleDateString()}</div>
+                                        <div class="text-sm mb-2">Total: $${item.totalCharges}</div>
+                                        <div class="text-sm mb-2">Insurance Paid: $${item.insurancePaid || '0.00'}</div>
+                                        <div class="text-sm mb-2">Your Responsibility: $${item.patientResponsibility || '0.00'}</div>
+                                        <span class="badge badge-info">${item.status}</span>
+                                    </div>
+                                `).join('')
+                            }
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                app.innerHTML = `
+                    <div class="max-w-4xl mx-auto p-4">
+                        <button onclick="showView('dashboard')" class="btn btn-secondary mb-4">← Back</button>
+                        <div class="card bg-red-50 text-red-800">
+                            <strong>Error:</strong> ${error.message}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const tenantId = document.getElementById('tenantId').value;
+
+            try {
+                const response = await api.login(email, password, tenantId);
+                auth.saveToken(response.token);
+                currentUser = await api.getProfile();
+                showView('dashboard');
+            } catch (error) {
+                alert('Login failed: ' + error.message);
+            }
+        }
+
+        function handleLogout() {
+            auth.clearToken();
+            currentUser = null;
+            showView('login');
+        }
+
+        if (auth.isAuthenticated()) {
+            api.getProfile().then(user => {
+                currentUser = user;
+                showView('dashboard');
+            }).catch((error) => {
+                auth.clearToken();
+                alert('Your session has expired. Please log in again.');
+                render();
+            });
+        } else {
+            render();
+        }
+    </script>
+</body>
+</html>

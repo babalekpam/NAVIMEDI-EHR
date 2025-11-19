@@ -32,10 +32,21 @@ class ApiClient {
     if (!response.ok) {
       if (response.status === 401) {
         clearToken();
-        window.location.href = '/';
+        throw new Error('Session expired. Please log in again.');
       }
-      const error = await response.json().catch(() => ({ message: 'Request failed' }));
-      throw new Error(error.message || `HTTP ${response.status}`);
+      
+      if (response.status === 404) {
+        throw new Error('This feature is not yet available. Please contact support if you need assistance.');
+      }
+
+      if (response.status === 500) {
+        throw new Error('Server error. Please try again later or contact support.');
+      }
+
+      const error = await response.json().catch(() => ({ 
+        message: `Request failed with status ${response.status}. Please try again later.` 
+      }));
+      throw new Error(error.message || `Request failed with status ${response.status}. Please try again later.`);
     }
     return response.json();
   }
