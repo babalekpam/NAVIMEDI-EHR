@@ -1,0 +1,122 @@
+const app = express();
+const server = createServer(app);
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'carnet-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 1000 * 60 * 60 * 24,
+    },
+  })
+);
+
+app.use('/api/auth', authRoutes);
+app.use('/api/patient', patientRoutes);
+app.use('/api/medical-communications', medicalCommRoutes);
+import invitationRoutes from './routes/invitation';
+
+app.get('/api/health', (req, res) => {
+app.use('/api/invitation', invitationRoutes);
+  res.json({ status: 'ok', message: 'CARNET API is running' });
+});
+
+const PORT = Number(process.env.PORT) || 5000;
+
+[root@mail carnet-standalone]# head -40 server/index.ts
+import express from 'express';
+import session from 'express-session';
+import cors from 'cors';
+import { createServer } from 'http';
+import ViteExpress from './vite';
+import authRoutes from './routes/auth.js';
+import patientRoutes from './routes/patient.js';
+import medicalCommRoutes from './routes/medical-communications.js';
+
+const app = express();
+const server = createServer(app);
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'carnet-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 1000 * 60 * 60 * 24,
+    },
+  })
+);
+
+app.use('/api/auth', authRoutes);
+app.use('/api/patient', patientRoutes);
+app.use('/api/medical-communications', medicalCommRoutes);
+import invitationRoutes from './routes/invitation';
+
+app.get('/api/health', (req, res) => {
+app.use('/api/invitation', invitationRoutes);
+  res.json({ status: 'ok', message: 'CARNET API is running' });
+});
+
+const PORT = Number(process.env.PORT) || 5000;
+
+[root@mail carnet-standalone]# # Remove the misplaced import line
+sed -i '/^import invitationRoutes from/d' server/index.ts
+
+# Add it properly at the top with other route imports
+sed -i '/import medicalCommRoutes/a import invitationRoutes from '\''./routes/invitation'\'';' server/index.ts
+[root@mail carnet-standalone]# # Remove the line that says "app.use('/api/invitation', invitationRoutes);" that's in the wrong place
+sed -i '/^app\.use.*invitation.*invitationRoutes/d' server/index.ts
+[root@mail carnet-standalone]# sed -i '/app\.use.*medical-communications/a app.use('\''/api/invitation'\'', invitationRoutes);' server/index.ts
+[root@mail carnet-standalone]# head -40 server/index.ts
+import express from 'express';
+import session from 'express-session';
+import cors from 'cors';
+import { createServer } from 'http';
+import ViteExpress from './vite';
+import authRoutes from './routes/auth.js';
+import patientRoutes from './routes/patient.js';
+import medicalCommRoutes from './routes/medical-communications.js';
+import invitationRoutes from './routes/invitation';
+
+const app = express();
+const server = createServer(app);
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'carnet-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 1000 * 60 * 60 * 24,
+    },
+  })
+);
+
+app.use('/api/auth', authRoutes);
+app.use('/api/patient', patientRoutes);
+app.use('/api/medical-communications', medicalCommRoutes);
+app.use('/api/invitation', invitationRoutes);
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'CARNET API is running' });
+});
+
+const PORT = Number(process.env.PORT) || 5000;
+
+[root@mail carnet-standalone]# 
