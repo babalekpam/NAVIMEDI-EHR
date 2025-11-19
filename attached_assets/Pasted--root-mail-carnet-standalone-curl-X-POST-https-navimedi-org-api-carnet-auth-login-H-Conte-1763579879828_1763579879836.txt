@@ -1,0 +1,20 @@
+[root@mail carnet-standalone]# curl -X POST https://navimedi.org/api/carnet/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"sarah.johnson@email.com","password":"password123","tenantId":"SAINT PAUL"}'
+{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInRlbmFudElkIjoxLCJyb2xlIjoicGF0aWVudCIsImlhdCI6MTc2MzU3OTcxMSwiZXhwIjoxNzYzNjY2MTExfQ.QE7q1HEHIYBfFy6puLNeHRsgiCfM7qHHaxUGrgUus8E","user":{"id":1,"email":"sarah.johnson@email.com","firstName":"Sarah","lastName":"Johnson","role":"patient"},"tenant":{"id":1,"name":"SAINT PAUL","type":"hospital"}}[root@mail carnet-standalone]curl -X GET https://navimedi.org/api/carnet/patient/profile \ \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInRlbmFudElkIjoxLCJyb2xlIjoicGF0aWVudCIsImlhdCI6MTc2MzU3OTcxMSwiZXhwIjoxNzYzNjY2MTExfQ.QE7q1HEHIYBfFy6puLNeHRsgiCfM7qHHaxUGrgUus8E"
+{"id":1,"email":"sarah.johnson@email.com","password":"$2b$10$PFAKuWRwThgOIdir8n7hDu.zAnnzlHtK3py9EFl6PmicqjjAtozMG","firstName":"Sarah","lastName":"Johnson","role":"patient","tenantId":1,"createdAt":"2025-11-19T17:20:37.882Z","patient":{"id":1,"userId":1,"tenantId":1,"dateOfBirth":"1990-05-15T00:00:00.000Z","gender":"female","phone":"+1-555-0123","address":"123 Main Street, Anytown, USA","emergencyContact":null,"medicalHistory":null,"createdAt":"2025-11-19T17:20:37.915Z"}}[root@mail carnet-standalone]#curl -X GET https://navimedi.org/api/carnet/patient/appointments \\
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInRlbmFudElkIjoxLCJyb2xlIjoicGF0aWVudCIsImlhdCI6MTc2MzU3OTcxMSwiZXhwIjoxNzYzNjY2MTExfQ.QE7q1HEHIYBfFy6puLNeHRsgiCfM7qHHaxUGrgUus8E"
+[{"id":1,"patientId":1,"tenantId":1,"providerId":1,"appointmentDate":"2025-11-26T17:20:37.932Z","appointmentType":"General Checkup","status":"scheduled","notes":"Annual physical examination","createdAt":"2025-11-19T17:20:37.949Z"},{"id":2,"patientId":1,"tenantId":1,"providerId":1,"appointmentDate":"2025-12-03T17:20:37.932Z","appointmentType":"Follow-up Visit","status":"scheduled","notes":"Follow-up for blood test results","createdAt":"2025-11-19T17:20:37.949Z"},{"id":3,"patientId":1,"tenantId":1,"providerId":1,"appointmentDate":"2025-10-20T17:20:37.932Z","appointmentType":"Consultation","status":"completed","notes":"Initial consultation","createdAt":"2025-11-19T17:20:37.949Z"}][root@mail carnet-standalone]# curl -I https://navimedi.orgcurl -I https://navimedi.org/carnet/manifest.json
+HTTP/2 200 
+server: nginx
+date: Wed, 19 Nov 2025 19:17:45 GMT
+content-type: application/json
+content-length: 1150
+last-modified: Wed, 19 Nov 2025 19:14:57 GMT
+etag: "691e1731-47e"
+content-type: application/manifest+json
+cache-control: public, max-age=3600
+accept-ranges: bytes
+
+[root@mail carnet-standalone]# 
