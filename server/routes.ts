@@ -2289,7 +2289,7 @@ The NaviMED Security Team
     }
   });
 
-  app.post('/api/patients', async (req, res) => {
+  app.post('/api/patients', authenticateToken, setTenantContext, requireTenant, async (req, res) => {
     try {
       const { tenantId } = req.user as any;
       
@@ -3805,7 +3805,7 @@ The NaviMED Security Team
   });
 
   // Send prescription to selected pharmacy
-  app.post('/api/prescriptions/:prescriptionId/send-to-pharmacy', async (req, res) => {
+  app.post('/api/prescriptions/:prescriptionId/send-to-pharmacy', authenticateToken, setTenantContext, requireTenant, async (req, res) => {
     try {
       const { prescriptionId } = req.params;
       const { pharmacyTenantId, routingNotes } = req.body;
