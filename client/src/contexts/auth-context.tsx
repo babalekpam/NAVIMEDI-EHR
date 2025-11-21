@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, startTransition } from "react";
 import { User } from "@shared/schema";
+import { clearCSRFToken } from "@/lib/queryClient";
 
 interface AuthUser {
   id: string;
@@ -230,6 +231,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user");
     localStorage.removeItem("post_login_redirect");
+    clearCSRFToken(); // Clear CSRF token on logout for cross-tenant security
     console.log('User logged out, clearing auth state and redirects');
   };
 

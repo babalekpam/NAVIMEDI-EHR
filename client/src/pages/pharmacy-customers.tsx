@@ -142,7 +142,7 @@ export default function PharmacyCustomers() {
       
       return apiRequest('/api/patients', {
         method: 'POST',
-        body: JSON.stringify(patientData),
+        body: patientData,
       });
     },
     onSuccess: () => {

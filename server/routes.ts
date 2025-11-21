@@ -2805,7 +2805,7 @@ The NaviMED Security Team
     }
   });
 
-  app.post('/api/appointments', async (req, res) => {
+  app.post('/api/appointments', authenticateToken, setTenantContext, requireTenant, async (req, res) => {
     try {
       const { tenantId } = req.user as any;
       console.log('🏥 Creating appointment - User:', req.user?.username, 'Tenant:', tenantId);

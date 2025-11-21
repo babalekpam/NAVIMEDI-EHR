@@ -1,6 +1,40 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { offlineStorage } from "./offline-storage";
 
+// CSRF token cache with expiry tracking
+let csrfToken: string | null = null;
+let csrfTokenFetchedAt: number = 0;
+const CSRF_TOKEN_MAX_AGE = 50 * 60 * 1000; // 50 minutes (server expires at 60 minutes)
+
+// Clear CSRF token (call on logout/login)
+export function clearCSRFToken() {
+  csrfToken = null;
+  csrfTokenFetchedAt = 0;
+}
+
+// Fetch CSRF token from server
+async function fetchCSRFToken(forceRefresh = false): Promise<string> {
+  const tokenAge = Date.now() - csrfTokenFetchedAt;
+  
+  // Return cached token if it exists and isn't expired (unless force refresh)
+  if (csrfToken && !forceRefresh && tokenAge < CSRF_TOKEN_MAX_AGE) {
+    return csrfToken;
+  }
+  
+  try {
+    const response = await fetch('/api/csrf-token', {
+      credentials: 'include',
+    });
+    const data = await response.json();
+    csrfToken = data.csrfToken;
+    csrfTokenFetchedAt = Date.now();
+    return csrfToken!;
+  } catch (error) {
+    console.warn('Failed to fetch CSRF token:', error);
+    return '';
+  }
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const contentType = res.headers.get('content-type');
@@ -65,20 +99,54 @@ export async function apiRequest(
     console.log(`🔓 Public endpoint request (no auth): ${method} ${url}`);
   }
   
+  // Fetch CSRF token for unsafe methods (POST, PUT, PATCH, DELETE)
+  const unsafeMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
+  let csrf = '';
+  if (unsafeMethods.includes(method)) {
+    csrf = await fetchCSRFToken();
+  }
+  
   const headers: Record<string, string> = {
     ...(data ? { "Content-Type": "application/json" } : {}),
     ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    ...(csrf ? { "X-CSRF-Token": csrf } : {}),
     ...(options?.headers || {}),
   };
 
-  const res = await fetch(url, {
+  let res = await fetch(url, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
 
-  const responseText = await res.text();
+  let responseText = await res.text();
+  
+  // Handle CSRF token expiry - retry once with fresh token
+  if (!res.ok && res.status === 403 && unsafeMethods.includes(method)) {
+    try {
+      const errorData = JSON.parse(responseText);
+      if (errorData.code === 'CSRF_TOKEN_INVALID' || errorData.code === 'CSRF_TOKEN_MISSING' || errorData.code === 'CSRF_SESSION_INVALID') {
+        console.log('🔄 CSRF token expired, fetching new token and retrying...');
+        
+        // Fetch fresh CSRF token
+        const freshCsrf = await fetchCSRFToken(true);
+        headers['X-CSRF-Token'] = freshCsrf;
+        
+        // Retry the request with fresh token
+        res = await fetch(url, {
+          method,
+          headers,
+          body: data ? JSON.stringify(data) : undefined,
+          credentials: "include",
+        });
+        
+        responseText = await res.text();
+      }
+    } catch (parseError) {
+      // Not a JSON error or not a CSRF error, continue with normal error handling
+    }
+  }
   
   if (!res.ok) {
     const contentType = res.headers.get('content-type');
@@ -105,6 +173,7 @@ export async function apiRequest(
     if (res.status === 401) {
       localStorage.removeItem("auth_token");
       localStorage.removeItem("auth_user");
+      clearCSRFToken(); // Clear CSRF token on auth failure
       errorMessage = 'Authentication failed. Please log in again.';
     }
     

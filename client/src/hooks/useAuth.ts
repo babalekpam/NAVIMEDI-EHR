@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { clearCSRFToken } from '@/lib/queryClient';
 
 export interface User {
   id: string;
@@ -36,6 +37,7 @@ export function useAuth() {
   const logout = () => {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user");
+    clearCSRFToken(); // Clear CSRF token on logout
     setUser(null);
     console.log('User logged out from useAuth hook');
     // Force a page reload to ensure clean state after logout

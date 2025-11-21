@@ -69,7 +69,7 @@ export default function Patients() {
     mutationFn: async ({ patientId, isActive }: { patientId: string; isActive: boolean }) => {
       return await apiRequest(`/api/patients/${patientId}/status`, {
         method: 'PATCH',
-        body: JSON.stringify({ isActive }),
+        body: { isActive },
       });
     },
     onSuccess: (_, { isActive }) => {
