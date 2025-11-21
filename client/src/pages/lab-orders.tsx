@@ -101,11 +101,6 @@ export default function LabOrders() {
 
   const createLabOrderMutation = useMutation({
     mutationFn: async (data: any) => {
-      const token = localStorage.getItem("auth_token");
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
       // Create a single lab order (simplified)
       const order = data.orders[0];
       const labOrderData = {
@@ -117,23 +112,10 @@ export default function LabOrders() {
         priority: order.priority || 'routine',
       };
 
-      const response = await fetch("/api/lab-orders", {
+      return apiRequest("/api/lab-orders", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(labOrderData),
-        credentials: "include",
+        body: labOrderData,
       });
-
-      const responseText = await response.text();
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${responseText.substring(0, 100)}`);
-      }
-
-      return JSON.parse(responseText);
     },
     onSuccess: (result) => {
       console.log("Lab order(s) created successfully:", result);
@@ -246,7 +228,7 @@ export default function LabOrders() {
     mutationFn: async ({ labOrderId, reason }: { labOrderId: string; reason: string }) => {
       return await apiRequest(`/api/lab-orders/${labOrderId}/cancel`, {
         method: 'PATCH',
-        body: JSON.stringify({ reason }),
+        body: { reason },
       });
     },
     onSuccess: () => {
