@@ -109,7 +109,14 @@ export async function apiRequest(
   const unsafeMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
   let csrf = '';
   if (unsafeMethods.includes(method)) {
-    csrf = await fetchCSRFToken();
+    try {
+      console.log(`🔐 Fetching CSRF token for ${method} ${url}...`);
+      csrf = await fetchCSRFToken();
+      console.log(`✅ CSRF token obtained:`, csrf.substring(0, 20) + '...');
+    } catch (error) {
+      console.error(`❌ Failed to get CSRF token for ${method} ${url}:`, error);
+      throw error; // Re-throw to prevent request without token
+    }
   }
   
   const headers: Record<string, string> = {
