@@ -25,13 +25,19 @@ async function fetchCSRFToken(forceRefresh = false): Promise<string> {
     const response = await fetch('/api/csrf-token', {
       credentials: 'include',
     });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch CSRF token: ${response.status}`);
+    }
+    
     const data = await response.json();
     csrfToken = data.csrfToken;
     csrfTokenFetchedAt = Date.now();
+    console.log('🔐 CSRF token fetched successfully');
     return csrfToken!;
   } catch (error) {
-    console.warn('Failed to fetch CSRF token:', error);
-    return '';
+    console.error('❌ Failed to fetch CSRF token:', error);
+    throw new Error('Failed to obtain CSRF token. Please refresh the page and try again.');
   }
 }
 
