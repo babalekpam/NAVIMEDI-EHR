@@ -5121,25 +5121,35 @@ to the patient and authorized healthcare providers.
     }
   });
 
-  // Get medical communications for the authenticated patient
+  // Get medical communications for the authenticated user
   app.get('/api/medical-communications', authenticateToken, async (req, res) => {
     try {
-      const { id: userId } = req.user as any;
+      const { id: userId, tenantId, role } = req.user as any;
       
-      console.log(`💬 MEDICAL COMMUNICATIONS - Getting communications for user ${userId}`);
+      console.log(`💬 MEDICAL COMMUNICATIONS - Getting communications for user ${userId} (role: ${role})`);
       
+      // Check if user is a patient
       const [patient] = await db.select().from(patients)
         .where(eq(patients.userAccountId, userId));
       
-      if (!patient) {
-        return res.status(404).json({ message: 'Patient not found' });
+      let communications;
+      
+      if (patient) {
+        // Patient user - show only their communications
+        communications = await db.select().from(medicalCommunications)
+          .where(eq(medicalCommunications.patientId, patient.id))
+          .orderBy(desc(medicalCommunications.createdAt));
+        
+        console.log(`💬 Found ${communications.length} communications for patient ${patient.firstName} ${patient.lastName}`);
+      } else {
+        // Provider/Admin user - show all communications in their tenant
+        communications = await db.select().from(medicalCommunications)
+          .where(eq(medicalCommunications.tenantId, tenantId))
+          .orderBy(desc(medicalCommunications.createdAt));
+        
+        console.log(`💬 Found ${communications.length} communications for tenant (provider/admin view)`);
       }
       
-      const communications = await db.select().from(medicalCommunications)
-        .where(eq(medicalCommunications.patientId, patient.id))
-        .orderBy(desc(medicalCommunications.createdAt));
-      
-      console.log(`💬 Found ${communications.length} communications for patient ${patient.firstName} ${patient.lastName}`);
       res.json(communications);
     } catch (error) {
       console.error('Error fetching medical communications:', error);
