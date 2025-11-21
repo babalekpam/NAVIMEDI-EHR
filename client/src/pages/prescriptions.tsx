@@ -117,7 +117,7 @@ export default function PrescriptionsPage() {
     mutationFn: async (checkData: any) => {
       return apiRequest('/api/clinical/check-prescription', {
         method: 'POST',
-        body: JSON.stringify(checkData)
+        body: checkData
       });
     },
     onSuccess: (result: any, variables: any) => {
@@ -150,21 +150,10 @@ export default function PrescriptionsPage() {
   // Create prescription mutation (actual creation)
   const createPrescriptionMutation = useMutation({
     mutationFn: async (prescriptionData: any) => {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/prescriptions', {
+      return apiRequest('/api/prescriptions', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(prescriptionData),
+        body: prescriptionData
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to create prescription');
-      }
-      
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/prescriptions'] });
