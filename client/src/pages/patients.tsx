@@ -52,17 +52,6 @@ export default function Patients() {
 
   // Enhanced patient creation with real-time dashboard updates
   const createPatientMutation = useCreatePatientMutation();
-  
-  // Override success handler to also close form
-  const originalMutate = createPatientMutation.mutate;
-  createPatientMutation.mutate = (data) => {
-    return originalMutate(data, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
-        setIsFormOpen(false);
-      }
-    });
-  };
 
   // Patient activation/deactivation mutation
   const togglePatientStatusMutation = useMutation({
@@ -132,7 +121,12 @@ export default function Patients() {
               <DialogTitle>{t('add-patient')}</DialogTitle>
             </DialogHeader>
             <PatientForm
-              onSubmit={(data) => createPatientMutation.mutate(data)}
+              onSubmit={(data) => createPatientMutation.mutate(data, {
+                onSuccess: () => {
+                  queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+                  setIsFormOpen(false);
+                }
+              })}
               isLoading={createPatientMutation.isPending}
             />
           </DialogContent>
