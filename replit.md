@@ -2,6 +2,33 @@
 
 NaviMED is a comprehensive, multi-tenant healthcare management platform designed to serve hospitals, pharmacies, laboratories, and clinics. The platform provides HIPAA-compliant electronic health records (EHR), prescription management, appointment scheduling, laboratory order processing, billing and insurance claims management, and patient engagement tools. Built as a full-stack web application, NaviMED enables healthcare organizations to streamline operations while maintaining security and regulatory compliance.
 
+# Recent Changes
+
+## November 21, 2025 - Critical Bug Fixes
+
+### CSRF Token Handling Improvements
+- **Fixed CSRF token fetch error handling**: Changed `fetchCSRFToken()` to throw errors instead of returning empty strings, preventing silent failures
+- **Added comprehensive logging**: CSRF token fetch attempts now log success (🔐) and failure (❌) messages for easier debugging
+- **Enhanced retry logic**: apiRequest now properly retries once on 403 CSRF errors with fresh tokens
+- **Token caching**: CSRF tokens are cached for 50 minutes (server expires at 60 minutes) to minimize unnecessary fetches
+
+### Patient Registration & Appointments Fixed
+- **Patient registration working**: Successfully tested with CSRF protection
+- **Appointment booking working**: Confirmed automatic CSRF retry on token mismatch
+- **Verified endpoints**: `/api/patients` (POST) and `/api/appointments` (POST) both functioning correctly
+
+### Previous Fixes
+- **Appointments endpoint**: Added `authenticateToken`, `setTenantContext`, and `requireTenant` middleware
+- **Removed double JSON.stringify**: Fixed in patient registration and pharmacy customer forms (frontend was double-stringifying data)
+- **Fixed mutation override bugs**: Removed direct reassignment of React Query mutation.mutate that broke promise chains
+
+### Testing Status
+- ✅ Patient registration tested and working
+- ✅ Appointment booking tested and working (with CSRF retry)
+- ⏳ Pharmacy customer registration (pending user test)
+- ⏳ Prescription creation (pending user test)
+- ⏳ Lab order creation (pending user test)
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
