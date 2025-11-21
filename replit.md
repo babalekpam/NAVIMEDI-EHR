@@ -6,6 +6,25 @@ NaviMED is a comprehensive, multi-tenant healthcare management platform designed
 
 ## November 21, 2025 - Critical Bug Fixes
 
+### DecimalError in Laboratory Dashboard - FIXED
+- **Root cause**: Backend analytics service was generating NaN/Infinity values from division by zero
+- **Backend fix**: Added `safeCalculate()` helper function in `server/analytics-service.ts` to safely handle all percentage calculations
+- **Frontend fix**: Enhanced equipment data transformation to sanitize efficiency values before rendering
+- **Equipment tab fix**: Added safe efficiency calculation in Progress components to prevent NaN values
+- **Status**: ✅ DecimalError completely resolved - backend never sends NaN/Infinity to frontend
+
+### Laboratory Dashboard Improvements
+- **Lab orders query fixed**: Laboratories now fetch ALL orders (ordered, collected, processing, completed) instead of only completed
+- **Medical communications fixed**: Backend checks if user has patient record; if not, shows all tenant communications (provider/admin view)
+- **Mock data removed**: All sample/mock data removed from reports endpoints - only real data or empty arrays
+- **Chart sanitization**: All chart data uses `safeChartData()` function to prevent NaN/Infinity values from reaching recharts
+
+### LABSAFE Laboratory Tenant
+- **Credentials updated**: Email changed to madjewaba@hotmail.com (password: Serrega1208@)
+- **Database clean**: No mock data - laboratory has clean slate for real testing
+- **Order visibility**: Lab technicians can see orders sent TO the laboratory
+- **Status workflow**: Orders progress through: ordered → collected → processing → completed
+
 ### CSRF Token Handling Improvements
 - **Fixed CSRF token fetch error handling**: Changed `fetchCSRFToken()` to throw errors instead of returning empty strings, preventing silent failures
 - **Added comprehensive logging**: CSRF token fetch attempts now log success (🔐) and failure (❌) messages for easier debugging
@@ -25,6 +44,7 @@ NaviMED is a comprehensive, multi-tenant healthcare management platform designed
 ### Testing Status
 - ✅ Patient registration tested and working
 - ✅ Appointment booking tested and working (with CSRF retry)
+- ✅ Laboratory dashboard DecimalError fixed
 - ⏳ Pharmacy customer registration (pending user test)
 - ⏳ Prescription creation (pending user test)
 - ⏳ Lab order creation (pending user test)

@@ -285,14 +285,29 @@ export default function LaboratoryDashboard() {
         }
       };
 
-      // Transform equipment data
+      // Transform equipment data - SAFE efficiency calculation
       const equipment = {
-        utilization: (realData.equipment?.utilization || []).map((item: any): any => ({
-          resource: item.resource || item.equipment || '',
-          utilized: Number(item.utilized) || Number(item.uptime) || 0,
-          capacity: Number(item.capacity) || 100,
-          efficiency: Number(item.efficiency) || (Number(item.capacity) > 0 ? (Number(item.utilized) / Number(item.capacity)) * 100 : 0)
-        })),
+        utilization: (realData.equipment?.utilization || []).map((item: any): any => {
+          const utilized = Number(item.utilized) || Number(item.uptime) || 0;
+          const capacity = Number(item.capacity) || 100;
+          const efficiency = Number(item.efficiency);
+          
+          // Calculate efficiency safely - prevent NaN/Infinity
+          let finalEfficiency = 0;
+          if (!isNaN(efficiency) && isFinite(efficiency)) {
+            finalEfficiency = efficiency;
+          } else if (capacity > 0) {
+            const calculated = (utilized / capacity) * 100;
+            finalEfficiency = isFinite(calculated) ? calculated : 0;
+          }
+          
+          return {
+            resource: item.resource || item.equipment || '',
+            utilized,
+            capacity,
+            efficiency: finalEfficiency
+          };
+        }),
         maintenanceSchedule: (realData.equipment?.maintenanceSchedule || []).map((item: any) => ({
           equipment: item.equipment || item.name || '',
           nextMaintenance: item.nextMaintenance || item.next || '',
@@ -1467,24 +1482,27 @@ export default function LaboratoryDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {(finalLaboratoryAnalytics?.equipment?.utilization || []).slice(0, 5).map((item: any, index: number) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">{item.resource}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-600">{item.utilized}/{item.capacity}</span>
-                          <span className="text-sm font-semibold text-blue-600">
-                            {(typeof item.efficiency === 'number' && isFinite(item.efficiency) ? item.efficiency : 0).toFixed(1)}%
-                          </span>
+                  {(finalLaboratoryAnalytics?.equipment?.utilization || []).slice(0, 5).map((item: any, index: number) => {
+                    const safeEfficiency = (typeof item.efficiency === 'number' && isFinite(item.efficiency)) ? item.efficiency : 0;
+                    return (
+                      <div key={index} className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">{item.resource}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-600">{item.utilized}/{item.capacity}</span>
+                            <span className="text-sm font-semibold text-blue-600">
+                              {safeEfficiency.toFixed(1)}%
+                            </span>
+                          </div>
                         </div>
+                        <Progress 
+                          value={safeEfficiency} 
+                          className="h-2"
+                          data-testid={`progress-equipment-${item.resource?.toLowerCase().replace(/\s+/g, '-')}`}
+                        />
                       </div>
-                      <Progress 
-                        value={item.efficiency} 
-                        className="h-2"
-                        data-testid={`progress-equipment-${item.resource?.toLowerCase().replace(/\s+/g, '-')}`}
-                      />
-                    </div>
-                  ))}
+                    );
+                  })}
                   <Button className="w-full mt-4" variant="outline" data-testid="button-view-equipment">
                     <Settings className="h-4 w-4 mr-2" />
                     View All Equipment
