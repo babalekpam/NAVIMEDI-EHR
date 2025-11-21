@@ -630,6 +630,15 @@ export class AnalyticsService {
     const processingMetrics = await LaboratoryAggregator.getProcessingMetrics(tenantId);
     const testVolumeData = await LaboratoryAggregator.getTestVolumeByType(tenantId);
 
+    // Helper function to safely calculate percentages and avoid NaN/Infinity
+    const safeCalculate = (numerator: any, denominator: any, defaultValue = 0): number => {
+      const num = Number(numerator) || 0;
+      const den = Number(denominator) || 0;
+      if (den === 0) return defaultValue;
+      const result = num / den * 100;
+      return isFinite(result) ? result : defaultValue;
+    };
+
     // Build proper data structure that matches dashboard expectations
     const analytics: LaboratoryAnalytics = {
       tenantId,
@@ -646,16 +655,16 @@ export class AnalyticsService {
         turnaroundTimes: [],
         // Let real data populate test volume trends - no hardcoded values
         testVolumeTrends: [],
-        // Quality control results from real data - no fallback mock values
+        // Quality control results from real data - SAFE calculations prevent NaN/Infinity
         qualityControlResults: [
-          { name: 'Accuracy Rate', current: Number(processingMetrics.resultsCompleted) / Number(processingMetrics.testsInProgress) * 100 || 0, previous: 0, target: 99.5, unit: '%', trend: 'stable' as const, changePercent: 0 },
-          { name: 'Precision', current: Number(processingMetrics.samplesCollected) / Number(processingMetrics.ordersReceived) * 100 || 0, previous: 0, target: 99.0, unit: '%', trend: 'stable' as const, changePercent: 0 }
+          { name: 'Accuracy Rate', current: safeCalculate(processingMetrics.resultsCompleted, processingMetrics.testsInProgress), previous: 0, target: 99.5, unit: '%', trend: 'stable' as const, changePercent: 0 },
+          { name: 'Precision', current: safeCalculate(processingMetrics.samplesCollected, processingMetrics.ordersReceived), previous: 0, target: 99.0, unit: '%', trend: 'stable' as const, changePercent: 0 }
         ]
       },
       samples: {
         collectionEfficiency: {
           name: 'Collection Efficiency',
-          current: Number(processingMetrics.ordersReceived) / 100 || 0,
+          current: safeCalculate(processingMetrics.ordersReceived, 100),
           previous: 0,
           target: 97.0,
           unit: '%',
@@ -663,13 +672,13 @@ export class AnalyticsService {
           changePercent: 0
         },
         sampleQuality: [
-          { name: 'Sample Integrity', current: Number(processingMetrics.samplesCollected) / 10 || 0, previous: 0, target: 98.5, unit: '%', trend: 'stable' as const, changePercent: 0 },
+          { name: 'Sample Integrity', current: safeCalculate(processingMetrics.samplesCollected, 10), previous: 0, target: 98.5, unit: '%', trend: 'stable' as const, changePercent: 0 },
           { name: 'Collection Standards', current: 0, previous: 0, target: 97.0, unit: '%', trend: 'stable' as const, changePercent: 0 }
         ],
         storageUtilization: [],
         rejectionRate: {
           name: 'Sample Rejection Rate',
-          current: Number(processingMetrics.criticalResults) / Number(processingMetrics.samplesCollected) * 100 || 0,
+          current: safeCalculate(processingMetrics.criticalResults, processingMetrics.samplesCollected),
           previous: 0,
           target: 2.0,
           unit: '%',
@@ -684,7 +693,7 @@ export class AnalyticsService {
       },
       quality: {
         accuracyMetrics: [
-          { name: 'Overall Accuracy', current: Number(processingMetrics.resultsCompleted) / Number(processingMetrics.testsInProgress) * 100 || 0, previous: 0, target: 99.0, unit: '%', trend: 'stable' as const, changePercent: 0 }
+          { name: 'Overall Accuracy', current: safeCalculate(processingMetrics.resultsCompleted, processingMetrics.testsInProgress), previous: 0, target: 99.0, unit: '%', trend: 'stable' as const, changePercent: 0 }
         ],
         proficiencyTests: [
           { name: 'External QC', current: 0, previous: 0, target: 99.5, unit: '%', trend: 'stable' as const, changePercent: 0 }
