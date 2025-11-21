@@ -93,6 +93,13 @@ export default function LabOrders() {
         ? [`/api/lab-orders`]
         : [`/api/lab-orders?status=${statusFilter === 'archived' ? 'archived' : 'pending'}`],
     enabled: !!user && !!tenant,
+    onSuccess: (data) => {
+      console.log('🔬 LAB ORDERS FETCHED:', data);
+      console.log('📊 Total orders:', data.length);
+      data.forEach((order: any) => {
+        console.log(`  - Order ${order.testName}: Status = "${order.status}", Priority = "${order.priority}"`);
+      });
+    }
   });
 
   const { data: patients = [] } = useQuery<Patient[]>({
