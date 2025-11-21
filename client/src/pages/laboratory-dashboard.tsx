@@ -449,28 +449,7 @@ export default function LaboratoryDashboard() {
     }
   });
 
-  // Use real analytics data when available, fallback to sample data
-  const finalLaboratoryAnalytics = transformLaboratoryAnalytics || getFallbackLaboratoryAnalytics();
-
-  // Define chart data variables from analytics - ALL sanitized to prevent DecimalError
-  const testVolumeData = safeChartData(finalLaboratoryAnalytics?.testing?.testVolumeTrends || []);
-  const statusDistributionData = safeChartData(finalLaboratoryAnalytics?.testing?.ordersByType || []);
-  const testTypeData = safeChartData(finalLaboratoryAnalytics?.testing?.ordersByType || []);
-  const performanceData = safeChartData(finalLaboratoryAnalytics?.testing?.qualityControlResults || []);
-  const recentActivityData = safeChartData(finalLaboratoryAnalytics?.samples?.sampleQuality || []);
-
-  // Chart configurations
-  const chartConfig: ChartConfig = {
-    pending: { label: "Pending", color: "#f97316" },
-    inProgress: { label: "In Progress", color: "#3b82f6" },
-    completed: { label: "Completed", color: "#22c55e" },
-    critical: { label: "Critical", color: "#ef4444" },
-    value: { label: "Value", color: "hsl(220, 98%, 61%)" },
-    target: { label: "Target", color: "hsl(0, 0%, 45%)" },
-    rate: { label: "Rate", color: "hsl(142, 76%, 36%)" }
-  };
-
-  // Data safety guards for chart inputs - ENHANCED to prevent DecimalError
+  // Data safety guards for chart inputs - MUST BE DEFINED FIRST to prevent DecimalError
   const safeChartData = (data: any[]) => {
     if (!Array.isArray(data) || data.length === 0) {
       return [];
@@ -490,6 +469,27 @@ export default function LaboratoryDashboard() {
       }
       return sanitized;
     });
+  };
+
+  // Use real analytics data when available, fallback to sample data
+  const finalLaboratoryAnalytics = transformLaboratoryAnalytics || getFallbackLaboratoryAnalytics();
+
+  // Define chart data variables from analytics - ALL sanitized to prevent DecimalError
+  const testVolumeData = safeChartData(finalLaboratoryAnalytics?.testing?.testVolumeTrends || []);
+  const statusDistributionData = safeChartData(finalLaboratoryAnalytics?.testing?.ordersByType || []);
+  const testTypeData = safeChartData(finalLaboratoryAnalytics?.testing?.ordersByType || []);
+  const performanceData = safeChartData(finalLaboratoryAnalytics?.testing?.qualityControlResults || []);
+  const recentActivityData = safeChartData(finalLaboratoryAnalytics?.samples?.sampleQuality || []);
+
+  // Chart configurations
+  const chartConfig: ChartConfig = {
+    pending: { label: "Pending", color: "#f97316" },
+    inProgress: { label: "In Progress", color: "#3b82f6" },
+    completed: { label: "Completed", color: "#22c55e" },
+    critical: { label: "Critical", color: "#ef4444" },
+    value: { label: "Value", color: "hsl(220, 98%, 61%)" },
+    target: { label: "Target", color: "hsl(0, 0%, 45%)" },
+    rate: { label: "Rate", color: "hsl(142, 76%, 36%)" }
   };
 
   // Show loading state while analytics are being fetched
