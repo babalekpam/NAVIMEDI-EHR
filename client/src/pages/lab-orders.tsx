@@ -84,8 +84,14 @@ export default function LabOrders() {
 
   const { data: labOrders = [], isLoading } = useQuery<LabOrder[]>({
     queryKey: tenant?.type === 'laboratory' 
-      ? [`/api/lab-orders?forLaboratory=true&status=${statusFilter === 'archived' ? 'archived' : 'completed'}`]
-      : [`/api/lab-orders?status=${statusFilter === 'archived' ? 'archived' : 'pending'}`],
+      ? statusFilter === 'all'
+        ? [`/api/lab-orders?forLaboratory=true`]
+        : statusFilter === 'archived'
+          ? [`/api/lab-orders?forLaboratory=true&status=archived`]
+          : [`/api/lab-orders?forLaboratory=true&status=${statusFilter}`]
+      : statusFilter === 'all'
+        ? [`/api/lab-orders`]
+        : [`/api/lab-orders?status=${statusFilter === 'archived' ? 'archived' : 'pending'}`],
     enabled: !!user && !!tenant,
   });
 
