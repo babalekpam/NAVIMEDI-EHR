@@ -452,12 +452,12 @@ export default function LaboratoryDashboard() {
   // Use real analytics data when available, fallback to sample data
   const finalLaboratoryAnalytics = transformLaboratoryAnalytics || getFallbackLaboratoryAnalytics();
 
-  // Define chart data variables from analytics
-  const testVolumeData = finalLaboratoryAnalytics?.testing?.testVolumeTrends || [];
-  const statusDistributionData = finalLaboratoryAnalytics?.testing?.ordersByType || [];
-  const testTypeData = finalLaboratoryAnalytics?.testing?.ordersByType || [];
-  const performanceData = finalLaboratoryAnalytics?.testing?.qualityControlResults || [];
-  const recentActivityData = finalLaboratoryAnalytics?.samples?.sampleQuality || [];
+  // Define chart data variables from analytics - ALL sanitized to prevent DecimalError
+  const testVolumeData = safeChartData(finalLaboratoryAnalytics?.testing?.testVolumeTrends || []);
+  const statusDistributionData = safeChartData(finalLaboratoryAnalytics?.testing?.ordersByType || []);
+  const testTypeData = safeChartData(finalLaboratoryAnalytics?.testing?.ordersByType || []);
+  const performanceData = safeChartData(finalLaboratoryAnalytics?.testing?.qualityControlResults || []);
+  const recentActivityData = safeChartData(finalLaboratoryAnalytics?.samples?.sampleQuality || []);
 
   // Chart configurations
   const chartConfig: ChartConfig = {
