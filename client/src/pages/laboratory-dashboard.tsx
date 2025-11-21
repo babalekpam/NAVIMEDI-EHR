@@ -59,8 +59,23 @@ import {
   Legend 
 } from "recharts";
 
-// Utility function for safe value clamping
+// Utility functions for safe calculations - PREVENT NaN/Infinity in ALL components
 const clamp = (value: number, min: number, max: number): number => Math.min(Math.max(value, min), max);
+
+// Safe percentage calculation - prevents division by zero and NaN propagation
+const safePercentage = (numerator: any, denominator: any, defaultValue = 0): number => {
+  const num = Number(numerator);
+  const den = Number(denominator);
+  if (!isFinite(num) || !isFinite(den) || den === 0) return defaultValue;
+  const result = (num / den) * 100;
+  return isFinite(result) ? Math.max(0, Math.min(result, 100)) : defaultValue;
+};
+
+// Safe number conversion - prevents NaN propagation
+const safeNumber = (value: any, defaultValue = 0): number => {
+  const num = Number(value);
+  return isFinite(num) ? num : defaultValue;
+};
 
 // Analytics data interfaces
 interface AnalyticsResponse {
@@ -853,7 +868,7 @@ export default function LaboratoryDashboard() {
                     </div>
                   </div>
                   <Progress 
-                    value={(metric.current / metric.target) * 100} 
+                    value={safePercentage(metric.current, metric.target)} 
                     className="h-2"
                   />
                   <div className="flex justify-between text-xs text-gray-500">
@@ -897,7 +912,7 @@ export default function LaboratoryDashboard() {
                   </div>
                 </div>
                 <Progress 
-                  value={(finalLaboratoryAnalytics.samples?.collectionEfficiency?.current || 0) / (finalLaboratoryAnalytics.samples?.collectionEfficiency?.target || 100) * 100} 
+                  value={safePercentage(finalLaboratoryAnalytics.samples?.collectionEfficiency?.current, finalLaboratoryAnalytics.samples?.collectionEfficiency?.target)} 
                   className="h-2"
                 />
               </div>
@@ -922,7 +937,7 @@ export default function LaboratoryDashboard() {
                   </div>
                 </div>
                 <Progress 
-                  value={Math.min((finalLaboratoryAnalytics.samples?.rejectionRate?.current || 0) / (finalLaboratoryAnalytics.samples?.rejectionRate?.target || 5) * 100, 100)} 
+                  value={safePercentage(finalLaboratoryAnalytics.samples?.rejectionRate?.current, finalLaboratoryAnalytics.samples?.rejectionRate?.target)} 
                   className="h-2"
                 />
               </div>
@@ -936,7 +951,7 @@ export default function LaboratoryDashboard() {
                       <span className="text-xs font-medium">{storage.resource}</span>
                       <span className="text-xs text-gray-600">{storage.utilized}/{storage.capacity}</span>
                     </div>
-                    <Progress value={storage.efficiency} className="h-1" />
+                    <Progress value={safeNumber(storage.efficiency)} className="h-1" />
                   </div>
                 ))}
               </div>
@@ -1709,7 +1724,7 @@ export default function LaboratoryDashboard() {
                         </div>
                       </div>
                       <Progress 
-                        value={(metric.current / metric.target) * 100} 
+                        value={safePercentage(metric.current, metric.target)} 
                         className="h-2"
                         data-testid={`progress-${metric.name?.toLowerCase().replace(/\s+/g, '-')}`}
                       />
@@ -1844,7 +1859,7 @@ export default function LaboratoryDashboard() {
                         </div>
                       </div>
                       <Progress 
-                        value={(metric.current / metric.target) * 100} 
+                        value={safePercentage(metric.current, metric.target)} 
                         className="h-2"
                         data-testid={`progress-qc-${metric.name?.toLowerCase().replace(/\s+/g, '-')}`}
                       />
