@@ -470,20 +470,26 @@ export default function LaboratoryDashboard() {
     rate: { label: "Rate", color: "hsl(142, 76%, 36%)" }
   };
 
-  // Data safety guards for chart inputs
+  // Data safety guards for chart inputs - ENHANCED to prevent DecimalError
   const safeChartData = (data: any[]) => {
     if (!Array.isArray(data) || data.length === 0) {
       return [];
     }
-    return data.map(item => ({
-      ...item,
-      value: typeof item.value === 'number' && isFinite(item.value) ? item.value : 0,
-      target: typeof item.target === 'number' && isFinite(item.target) ? item.target : undefined,
-      current: typeof item.current === 'number' && isFinite(item.current) ? item.current : 0,
-      utilized: typeof item.utilized === 'number' && isFinite(item.utilized) ? item.utilized : 0,
-      capacity: typeof item.capacity === 'number' && isFinite(item.capacity) ? item.capacity : 0,
-      rate: typeof item.rate === 'number' && isFinite(item.rate) ? item.rate : 0
-    }));
+    return data.map(item => {
+      const sanitized: any = {};
+      for (const key in item) {
+        const value = item[key];
+        // Convert all numeric values to safe numbers (no NaN, Infinity, null, undefined)
+        if (typeof value === 'number') {
+          sanitized[key] = isNaN(value) || !isFinite(value) ? 0 : value;
+        } else if (value === null || value === undefined) {
+          sanitized[key] = 0; // Default to 0 for null/undefined numeric fields
+        } else {
+          sanitized[key] = value;
+        }
+      }
+      return sanitized;
+    });
   };
 
   // Show loading state while analytics are being fetched
