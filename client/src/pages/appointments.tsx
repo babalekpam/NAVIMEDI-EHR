@@ -94,26 +94,18 @@ export default function Appointments() {
 
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
-      const response = await fetch("/api/appointments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
-        },
-        body: JSON.stringify(appointmentData)
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        
+      try {
+        return await apiRequest("/api/appointments", {
+          method: "POST",
+          body: appointmentData,
+        });
+      } catch (error: any) {
         // Handle role restriction errors with user-friendly messages
-        if (errorData.error === "ROLE_RESTRICTION_SCHEDULING") {
+        if (error.message?.includes("ROLE_RESTRICTION_SCHEDULING")) {
           throw new Error("You don't have permission to schedule appointments. Please contact reception staff or request scheduling permissions from your administrator.");
         }
-        
-        throw new Error(errorData.message || "Failed to create appointment");
+        throw error;
       }
-      return response.json();
     },
     onSuccess: (newAppointment) => {
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
