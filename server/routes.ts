@@ -6371,24 +6371,8 @@ to the patient and authorized healthcare providers.
       const allStoredReports = global.tenantReports || [];
       const tenantStoredReports = allStoredReports.filter(report => report.tenantId === tenantId);
       
-      // Include sample reports if no actual reports exist
-      const sampleReports = tenantStoredReports.length === 0 ? [
-        {
-          id: 'report_1',
-          tenantId,
-          title: 'Sample Report - ' + new Date().toLocaleDateString(),
-          type: 'financial',
-          format: 'pdf',
-          status: 'completed',
-          createdAt: new Date(Date.now() - 86400000), // Yesterday
-          completedAt: new Date(Date.now() - 86400000 + 60000),
-          generatedBy: req.user?.id || 'system'
-        }
-      ] : [];
-      
-      const reports = [...tenantStoredReports, ...sampleReports];
-      
-      res.json(reports);
+      // Return only actual reports (no mock data)
+      res.json(tenantStoredReports);
     } catch (error) {
       console.error('Error fetching reports:', error);
       res.status(500).json({ message: 'Failed to fetch reports' });
@@ -6476,35 +6460,8 @@ to the patient and authorized healthcare providers.
       // Get stored platform reports
       const storedReports = global.platformReports || [];
       
-      // Combine with some sample reports if no reports exist
-      const sampleReports = storedReports.length === 0 ? [
-        {
-          id: 'platform_report_1',
-          tenantId: 'platform',
-          title: 'Platform Analytics - ' + new Date().toLocaleDateString(),
-          type: 'platform',
-          format: 'pdf',
-          status: 'completed',
-          createdAt: new Date(Date.now() - 172800000), // 2 days ago
-          completedAt: new Date(Date.now() - 172800000 + 120000),
-          generatedBy: 'super_admin'
-        },
-        {
-          id: 'platform_report_2',
-          tenantId: 'platform',
-          title: 'Subscription Revenue Report - ' + new Date().toLocaleDateString(),
-          type: 'subscriptions',
-          format: 'pdf',
-          status: 'completed',
-          createdAt: new Date(Date.now() - 86400000), // 1 day ago
-          completedAt: new Date(Date.now() - 86400000 + 180000),
-          generatedBy: 'super_admin'
-        }
-      ] : [];
-      
-      const reports = [...storedReports, ...sampleReports];
-      
-      res.json(reports);
+      // Return only actual reports (no mock data)
+      res.json(storedReports);
     } catch (error) {
       console.error('Error fetching platform reports:', error);
       res.status(500).json({ message: 'Failed to fetch platform reports' });
