@@ -288,7 +288,7 @@ export default function LabOrders() {
           <h1 className="text-3xl font-bold text-gray-900">Laboratory Orders</h1>
           <p className="text-gray-600 mt-1">Manage lab orders and results</p>
         </div>
-        {(user.role === "physician" || user.role === "nurse") && (
+        {(user.role === "physician" || user.role === "nurse" || user.role === "tenant_admin" || user.role === "director" || user.role === "super_admin" || user.role === "receptionist") && (
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
               <Button className="bg-blue-600 hover:bg-blue-700">
